@@ -1,32 +1,63 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Princesa Fitness & Studio</title>
+    <title>Plumare | Indústria e Comércio de Cama, Mesa e Banho</title>
+    
+    <!-- Fonte Comfortaa -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons (Ícones) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- React e ReactDOM (Para animações) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel (Para compilar JSX no navegador) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Configurações do Tema -->
     <script>
         tailwind.config = {
+            darkMode: 'class', 
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            red: '#D90429', // Vermelho vibrante
-                            dark: '#0a0a0a', // Preto quase total
-                            gray: '#1a1a1a', // Cinza muito escuro
-                        }
+                        plumare: {
+                            blue: '#5EB2F0',
+                            green: '#6EEBCC',
+                            black: '#000000',
+                            bg: '#fbfbfd',
+                            dark: '#0f0f11',
+                        },
+                        shopee: '#EE4D2D',
+                        whatsapp: '#25D366',
+                        instagram: '#C13584'
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Comfortaa', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 8s ease-in-out infinite',
+                        'float-delayed': 'float 9s ease-in-out 3s infinite',
+                        'fade-in-up': 'fadeInUp 0.8s ease-out',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-15px) rotate(3deg)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
                     }
                 }
             }
@@ -34,631 +65,479 @@
     </script>
 
     <style>
-        /* Estilos Personalizados e Animações */
         body {
-            background-color: #050505;
-            color: #ffffff;
+            background-color: #fbfbfd;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(94, 178, 240, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(110, 235, 204, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.5s ease;
         }
 
-        /* Scrollbar customizada */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0a0a0a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #D90429;
+        .dark body {
+            background-color: #0f0f11;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(94, 178, 240, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(110, 235, 204, 0.15) 0px, transparent 50%);
         }
 
-        /* Efeito Glassmorphism (Glassend) */
-        .glass {
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: saturate(180%) blur(25px);
+            -webkit-backdrop-filter: saturate(180%) blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
         }
 
-        .glass-card {
-            background: linear-gradient(145deg, rgba(30,30,30,0.4) 0%, rgba(10,10,10,0.6) 100%);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .glass-card:hover {
-            border-color: rgba(217, 4, 41, 0.5);
-            box-shadow: 0 0 20px rgba(217, 4, 41, 0.2);
-            transform: translateY(-5px);
+        .dark .glass-panel {
+            background: rgba(20, 20, 23, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
-        /* --- NOVOS ESTILOS DO HERO DINÂMICO --- */
-        .hero-container {
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* Fundo com efeito Ken Burns (Zoom lento) */
-        .ken-burns-bg {
-            position: absolute;
-            inset: 0;
-            background-image: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            opacity: 0.3;
-            animation: kenBurns 20s infinite alternate ease-in-out;
-            z-index: 0;
-        }
-        @keyframes kenBurns {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.15); }
+        /* Estilo base para botões React */
+        .glass-button-react {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efeito elástico */
         }
 
-        /* Spotlight (Lanterna do Mouse) */
-        .spotlight-overlay {
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(217, 4, 41, 0.15) 0%, rgba(5, 5, 5, 0.9) 50%, #050505 100%);
-            z-index: 1;
-            pointer-events: none; /* Permite clicar através */
-        }
-
-        /* Texto com Gradiente Animado */
-        .animated-text-gradient {
-            background: linear-gradient(to right, #ffffff, #D90429, #ffffff);
-            background-size: 200% auto;
-            color: transparent;
-            -webkit-background-clip: text;
-            background-clip: text;
-            animation: shine 5s linear infinite;
-        }
-        @keyframes shine {
-            to { background-position: 200% center; }
-        }
-
-        /* Botões Magnéticos (Base) */
-        .magnetic-btn {
-            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        /* --- FIM HERO --- */
-
-        /* Tipografia estilo Apple */
-        .hero-title {
-            letter-spacing: -0.05em;
-        }
-        
-        .section-title {
-            background: linear-gradient(90deg, #fff 0%, #D90429 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Animação de Entrada (Fade Up) */
-        .reveal {
-            opacity: 0;
-            transform: translateY(50px);
-            transition: all 0.8s ease-out;
-        }
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Elemento Rotativo (Scroll Driven) */
-        #rotating-element {
-            transition: transform 0.1s linear; /* Suave mas responsivo */
-            will-change: transform;
-        }
-        
-        /* Tabs Animation */
-        .tab-content {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-        .tab-content.active {
-            display: block;
-            opacity: 1;
-            animation: fadeIn 0.5s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .tab-btn.active {
-            background-color: #D90429;
+        .dark .glass-button-react {
+            background: rgba(30, 30, 35, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
-            border-color: #D90429;
+        }
+
+        .glass-button-react:hover {
+            transform: scale(1.03) translateY(-2px);
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        .dark .glass-button-react:hover {
+            background: rgba(40, 40, 45, 0.9);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .glass-button {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dark .glass-button {
+            background: rgba(30, 30, 35, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .glass-button:hover {
+            transform: scale(1.02);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .dark .glass-button:hover {
+            background: rgba(40, 40, 45, 0.9);
+        }
+
+        .nav-slim { height: 70px; }
+        
+        /* Utilitários */
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(135deg, #1d1d1f 0%, #4a4a4a 100%);
+        }
+        .dark .text-gradient {
+            background-image: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="text-[#1d1d1f] dark:text-gray-100 font-sans selection:bg-plumare-green/30 selection:text-plumare-black transition-colors duration-500">
 
-    <!-- Navegação Flutuante -->
-    <nav class="fixed top-0 w-full z-50 glass border-b border-white/5">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex-shrink-0 flex items-center gap-2">
-                    <div class="w-10 h-10 bg-brand-red rounded-lg flex items-center justify-center font-bold text-white text-xl">P</div>
-                    <span class="font-bold text-lg tracking-tight">PRINCESA <span class="text-brand-red">FIT</span></span>
+    <!-- Background Decorativo -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-plumare-blue/5 rounded-full filter blur-[100px] animate-float"></div>
+        <div class="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-plumare-green/5 rounded-full filter blur-[80px] animate-float-delayed"></div>
+    </div>
+
+    <!-- HEADER SLIM -->
+    <header class="fixed top-0 w-full z-50 glass-panel border-b border-white/20 dark:border-white/5 nav-slim transition-all duration-300">
+        <div class="max-w-6xl mx-auto px-4 h-full flex items-center justify-between">
+            <div class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-plumare-blue/20 to-plumare-green/20 flex items-center justify-center overflow-hidden border border-white/50 dark:border-white/10 relative">
+                    <img id="logo-preview" src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/logo.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL2xvZ28ucG5nIiwiaWF0IjoxNzcwMDM1MzIzLCJleHAiOjE4MDE1NzEzMjN9.sOgLySmkvZ99jL1ZYZ4vkldr7fn_DvvaXDGtWm-phak" alt="Logo" class="w-full h-full object-cover p-1">
                 </div>
-                <div class="hidden md:block">
-                    <div class="ml-10 flex items-baseline space-x-8">
-                        <a href="#modalidades" class="hover:text-brand-red transition-colors px-3 py-2 rounded-md text-sm font-medium">Modalidades</a>
-                        <a href="#eventos" class="hover:text-brand-red transition-colors px-3 py-2 rounded-md text-sm font-medium">Eventos</a>
-                        <a href="#contato" class="bg-brand-red hover:bg-red-700 text-white px-4 py-2 rounded-full text-sm font-bold transition-all transform hover:scale-105">Matricule-se</a>
-                    </div>
-                </div>
-                <!-- Mobile Menu Button -->
-                <div class="-mr-2 flex md:hidden">
-                    <button type="button" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
+                <div class="flex flex-col">
+                    <span class="text-lg font-bold tracking-tight text-plumare-blue leading-none">PLUMARE</span>
+                    <span class="text-[0.6rem] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Textil</span>
                 </div>
             </div>
-        </div>
-        <!-- Mobile Menu -->
-        <div class="hidden md:hidden glass border-t border-gray-800" id="mobile-menu">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <a href="#modalidades" class="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Modalidades</a>
-                <a href="#eventos" class="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Eventos</a>
-            </div>
-        </div>
-    </nav>
 
-    <!-- NEW DYNAMIC HERO SECTION -->
-    <section id="hero" class="relative h-screen flex items-center justify-center hero-container">
-        
-        <!-- Background Animado (Zoom) -->
-        <div class="ken-burns-bg"></div>
-        
-        <!-- Efeito Spotlight (JS Controlled) -->
-        <div class="spotlight-overlay" id="spotlight"></div>
-
-        <!-- Grade Decorativa (Grid Cyberpunk sutil) -->
-        <div class="absolute inset-0 z-[2] opacity-10 pointer-events-none" 
-             style="background-image: linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px); background-size: 50px 50px;">
-        </div>
-
-        <div class="relative z-10 text-center px-4 max-w-5xl mx-auto flex flex-col items-center">
-            
-            <!-- Etiqueta Brilhante -->
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass border border-white/10 mb-8 animate-bounce delay-1000">
-                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                <span class="text-xs font-bold uppercase tracking-widest text-white/80">Aberto Agora</span>
-            </div>
-
-            <!-- Título Gigante -->
-            <h1 class="text-6xl sm:text-7xl md:text-9xl font-black mb-4 hero-title reveal leading-none tracking-tighter">
-                PRINCESA<br>
-                <span class="animated-text-gradient">FITNESS</span>
-            </h1>
-            
-            <p class="text-lg md:text-2xl text-gray-300 mb-10 font-light reveal max-w-2xl mx-auto backdrop-blur-sm" style="transition-delay: 200ms;">
-                Não é apenas sobre treinar. É sobre pertencer à <strong class="text-white">elite</strong> do movimento.
-            </p>
-            
-            <!-- Botões Estilo "Vidro + Neon" -->
-            <div class="flex flex-col sm:flex-row gap-5 justify-center w-full sm:w-auto reveal" style="transition-delay: 300ms;">
-                
-                <button onclick="switchTab('academia')" 
-                        class="magnetic-btn group relative px-8 py-4 bg-white text-black font-black rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.7)]">
-                    <span class="relative z-10 flex items-center gap-2">
-                        ACADEMIA <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                    </span>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-gray-600 dark:text-gray-300">
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
                 </button>
-
-                <button onclick="switchTab('studio')" 
-                        class="magnetic-btn group relative px-8 py-4 text-white font-bold rounded-full overflow-hidden transition-all hover:scale-105">
-                    <!-- Fundo Gradiente e Blur -->
-                    <div class="absolute inset-0 bg-brand-red/80 backdrop-blur-md group-hover:bg-brand-red transition-colors"></div>
-                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                    
-                    <span class="relative z-10 flex items-center gap-2">
-                        STUDIO CROSS <i class="fas fa-fire group-hover:animate-pulse"></i>
-                    </span>
-                </button>
-
+                <a href="https://instagram.com/plumaremkt" target="_blank" class="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/5 dark:bg-white/10 hover:bg-instagram-gradient hover:text-white transition-all text-xs font-bold text-gray-600 dark:text-gray-300">
+                    <i data-lucide="instagram" class="w-4 h-4"></i>
+                    @plumaremkt
+                </a>
             </div>
         </div>
+    </header>
 
-        <!-- Scroll Indicator -->
-        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-20 animate-bounce text-white/50 text-2xl">
-            <i class="fas fa-chevron-down"></i>
-        </div>
-    </section>
+    <div class="pt-24"></div>
 
-    <!-- Seção Rotativa -->
-    <section class="py-20 bg-[#050505] relative overflow-hidden">
-        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            
-            <div class="space-y-16 z-10">
-                <div class="reveal">
-                    <h2 class="text-4xl md:text-6xl font-bold mb-4">Potência Pura.</h2>
-                    <p class="text-gray-400 text-lg">Equipamentos de alta performance e variedade para esculpir sua melhor versão.</p>
-                </div>
-                <div class="reveal">
-                    <h2 class="text-4xl md:text-6xl font-bold mb-4">Ambiente Top.</h2>
-                    <p class="text-gray-400 text-lg">Organização impecável, professores atenciosos e a energia que você precisa.</p>
-                </div>
-                <div class="reveal">
-                    <h2 class="text-4xl md:text-6xl font-bold mb-4 text-brand-red">Sem Agendamento.</h2>
-                    <p class="text-gray-400 text-lg">Liberdade total. Chegue e treine no seu horário. Aberto de segunda a sábado.</p>
-                </div>
-            </div>
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="relative z-10 pb-12 px-4">
+        <div class="max-w-4xl mx-auto space-y-16 md:space-y-24">
 
-            <div class="relative h-[400px] lg:h-[600px] flex items-center justify-center sticky top-20">
-                <div class="absolute w-64 h-64 md:w-96 md:h-96 bg-brand-red/20 rounded-full blur-3xl animate-pulse"></div>
-                <div id="rotating-wrapper" class="relative z-10 w-64 h-64 md:w-80 md:h-80">
-                   <svg id="rotating-element" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-2xl">
-                        <circle cx="256" cy="256" r="240" stroke="#333" stroke-width="20" fill="#111"/>
-                        <circle cx="256" cy="256" r="100" stroke="#D90429" stroke-width="10"/>
-                        <path d="M256 50 V150 M256 362 V462 M50 256 H150 M362 256 H462" stroke="#333" stroke-width="20" stroke-linecap="round"/>
-                        <text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" fill="#fff" font-family="Arial" font-weight="bold" font-size="60">FIT</text>
-                   </svg>
-                </div>
-            </div>
-        </div>
-    </section>
+            <!-- SEÇÃO 1: BOTÕES REACT -->
+            <!-- Aqui inserimos o componente React -->
+            <div id="react-buttons-root"></div>
 
-    <!-- CARNAVAL SPECIAL BLOCK -->
-    <section id="eventos" class="py-12 bg-gradient-to-r from-brand-red to-purple-900 relative overflow-hidden">
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-        <div class="max-w-5xl mx-auto px-4 text-center relative z-10">
-            <div class="inline-block bg-white text-brand-red px-3 py-1 rounded-full text-xs font-bold mb-4 animate-bounce">
-                EVENTO ESPECIAL
-            </div>
-            <h2 class="text-4xl md:text-5xl font-black text-white mb-4 uppercase italic">Tardezinha de Carnaval Princesa 🎭</h2>
-            <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                Prepare a fantasia, o brilho e a disposição! Vai ser aquele aulão pra suar, sorrir e curtir.
-            </p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto mb-8">
-                <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border border-white/20">
-                    <i class="far fa-calendar-alt text-2xl mb-2"></i>
-                    <p class="font-bold">07 de Fevereiro</p>
+            <!-- SEÇÃO DE VÍDEO -->
+            <section class="glass-panel p-6 rounded-[2rem]">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-plumare-blue mb-2">Conheça Nossa História</h2>
+                    <p class="text-gray-600 dark:text-gray-300">Descubra como transformamos sonhos em realidade</p>
                 </div>
-                <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border border-white/20">
-                    <i class="far fa-clock text-2xl mb-2"></i>
-                    <p class="font-bold">15h30</p>
-                </div>
-                <div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border border-white/20">
-                    <i class="fas fa-map-marker-alt text-2xl mb-2"></i>
-                    <p class="font-bold">Sede do Box Princesa</p>
-                </div>
-            </div>
-            <p class="text-sm opacity-80 italic">Treino + Música + Energia lá em cima!</p>
-        </div>
-    </section>
 
-    <!-- AREA DE SELEÇÃO DE MODALIDADE -->
-    <section id="modalidades" class="py-20 relative">
-        <div class="max-w-7xl mx-auto px-4">
-            <!-- Tabs Controls -->
-            <div class="flex justify-center mb-16">
-                <div class="glass rounded-full p-2 inline-flex gap-2">
-                    <button onclick="switchTab('academia')" id="btn-academia" class="tab-btn active px-8 py-3 rounded-full text-sm md:text-lg font-bold text-gray-300 border border-transparent transition-all duration-300 hover:text-white">
-                        Academia
-                    </button>
-                    <button onclick="switchTab('studio')" id="btn-studio" class="tab-btn px-8 py-3 rounded-full text-sm md:text-lg font-bold text-gray-300 border border-transparent transition-all duration-300 hover:text-white">
-                        Studio Cross
-                    </button>
-                </div>
-            </div>
+                <div class="relative w-full max-w-md mx-auto">
+                    <div class="relative rounded-2xl overflow-hidden bg-black shadow-2xl">
+                        <video id="plumare-video" class="w-full aspect-[9/16]" poster="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/casal.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL2Nhc2FsLmpwZyIsImlhdCI6MTc3MDAzNTM2OSwiZXhwIjoxODAxNTcxMzY5fQ.xYqFSU_rGusNXYM0HMb2u7YizILGoj9eNXjmjsOMOsQ">
+                            <source src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/video%20institucional%20.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL3ZpZGVvIGluc3RpdHVjaW9uYWwgLm1wNCIsImlhdCI6MTc3MDA0MzUyMiwiZXhwIjoxODAxNTc5NTIyfQ.OTf7lzj7_gJRZhQQ0Z2hq7IxXcYaKF3XmpAu6k9nVK4" type="video/mp4">
+                        </video>
 
-            <!-- CONTEÚDO TAB: ACADEMIA -->
-            <div id="tab-academia" class="tab-content active">
-                <div class="flex flex-col md:flex-row gap-12 items-center">
-                    <!-- Imagem -->
-                    <div class="w-full md:w-1/2 rounded-3xl overflow-hidden relative group shadow-2xl shadow-brand-red/5">
-                        <img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?q=80&w=1375&auto=format&fit=crop" class="w-full h-[500px] object-cover transition duration-700 group-hover:scale-105" alt="Academia">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90"></div>
-                        <div class="absolute bottom-8 left-8">
-                            <span class="bg-white text-black text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3 inline-block">Musculação</span>
-                            <h3 class="text-4xl font-bold text-white mb-2">Estrutura Completa</h3>
-                            <p class="text-gray-300">Foco total no seu resultado.</p>
-                        </div>
-                    </div>
-
-                    <!-- Detalhes -->
-                    <div class="w-full md:w-1/2 space-y-8">
-                        <div>
-                            <h2 class="text-5xl font-black mb-6">Academia <span class="text-brand-red">Tradicional</span></h2>
-                            <p class="text-gray-400 text-lg leading-relaxed">
-                                Localizado na Rua João Batista dos Santos, 288, nossa academia é a escolha certa para quem procura musculação de qualidade. Oferecemos um ambiente climatizado, armários seguros e uma equipe de professores atenciosos.
-                            </p>
+                        <div id="video-controls" class="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+                            <button id="play-pause-btn" class="glass-panel w-20 h-20 rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-2xl">
+                                <i id="play-icon" data-lucide="play" class="w-10 h-10 text-plumare-blue"></i>
+                                <i id="pause-icon" data-lucide="pause" class="w-10 h-10 text-plumare-blue hidden"></i>
+                            </button>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="glass p-5 rounded-2xl border border-white/5">
-                                <i class="fas fa-clock text-brand-red text-2xl mb-3"></i>
-                                <h4 class="font-bold text-white">Horário Extenso</h4>
-                                <p class="text-sm text-gray-400">05:00 - 22:00 (Seg-Sáb)</p>
-                            </div>
-                            <div class="glass p-5 rounded-2xl border border-white/5">
-                                <i class="fas fa-calendar-check text-brand-red text-2xl mb-3"></i>
-                                <h4 class="font-bold text-white">Livre Acesso</h4>
-                                <p class="text-sm text-gray-400">Sem necessidade de agendamento</p>
+                        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                            <div class="flex items-center gap-3">
+                                <span id="current-time" class="text-white text-xs font-mono min-w-[40px]">0:00</span>
+                                <div class="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden cursor-pointer" id="progress-bar">
+                                    <div id="progress-fill" class="h-full bg-gradient-to-r from-plumare-blue to-plumare-green rounded-full w-0 transition-all"></div>
+                                </div>
+                                <span id="duration" class="text-white text-xs font-mono min-w-[40px]">0:00</span>
+                                <button id="mute-btn" class="text-white">
+                                    <i id="volume-icon" data-lucide="volume-2" class="w-5 h-5"></i>
+                                    <i id="mute-icon" data-lucide="volume-x" class="w-5 h-5 hidden"></i>
+                                </button>
+                                <button id="fullscreen-btn" class="text-white">
+                                    <i data-lucide="maximize" class="w-5 h-5"></i>
+                                </button>
                             </div>
                         </div>
-
-                        <a href="https://maps.google.com/?q=Rua+João+Batista+dos+Santos,288" target="_blank" class="inline-flex items-center gap-2 text-white hover:text-brand-red transition font-bold border-b border-white/20 pb-1">
-                            Ver localização no mapa <i class="fas fa-arrow-right"></i>
-                        </a>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- CONTEÚDO TAB: STUDIO CROSS (EXCLUSIVO) -->
-            <div id="tab-studio" class="tab-content">
-                <!-- Banner Exclusive -->
-                <div class="relative rounded-3xl overflow-hidden mb-16 border border-brand-red/30">
-                    <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-10"></div>
-                    <img src="https://images.unsplash.com/photo-1517963879466-e9b5ce382d3d?q=80&w=1471&auto=format&fit=crop" class="w-full h-[400px] object-cover" alt="Crossfit">
-                    
-                    <div class="absolute inset-0 z-20 flex flex-col justify-center px-8 md:px-16">
-                        <span class="text-brand-red tracking-[0.3em] font-bold text-sm mb-2">ALTA INTENSIDADE</span>
-                        <h2 class="text-5xl md:text-7xl font-black text-white mb-4 italic">CROSS <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-red to-white">PRINCESA</span></h2>
-                        <p class="text-gray-300 max-w-lg text-lg">
-                            Hitbox, Funcional e Cross todos os dias. Uma nova categoria que promete muita energia e resultados rápidos.
+            <!-- SEÇÃO 2: HISTÓRIA -->
+            <section id="historia" class="glass-panel p-8 md:p-12 rounded-[2rem]">
+                <div class="flex flex-col md:flex-row gap-10 items-center">
+                    <div class="flex-1 space-y-6 text-center md:text-left">
+                        <h2 class="text-3xl font-bold text-gradient">Nossa História</h2>
+                        <p class="text-gray-500 dark:text-gray-300 leading-relaxed text-lg font-light">
+                            Nascemos da paixão por transformar fios em conforto. Em nossa fábrica em Tobias Barreto, unimos tecnologia e acabamento artesanal para criar o enxoval perfeito para o seu lar.
                         </p>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Info Lateral -->
-                    <div class="lg:col-span-1 space-y-6">
-                        <div class="glass-card p-8 rounded-3xl h-full">
-                            <h3 class="text-2xl font-bold mb-6 text-white border-l-4 border-brand-red pl-4">Infos Gerais</h3>
-                            <ul class="space-y-6">
-                                <li class="flex gap-4">
-                                    <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-brand-red shrink-0">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm text-gray-400">Endereço</p>
-                                        <p class="font-bold text-white text-sm">Av. José David dos Santos, Santa Rita - Tobias Barreto</p>
-                                    </div>
-                                </li>
-                                <li class="flex gap-4">
-                                    <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-brand-red shrink-0">
-                                        <i class="fas fa-clock"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm text-gray-400">Abertura</p>
-                                        <p class="font-bold text-white">A partir das 17:00</p>
-                                    </div>
-                                </li>
-                                <li class="flex gap-4">
-                                    <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-brand-red shrink-0">
-                                        <i class="fab fa-whatsapp"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm text-gray-400">Contato</p>
-                                        <p class="font-bold text-white">(79) 99660-7601</p>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Planos / Valores (Solicitado) -->
-                    <div class="lg:col-span-2">
-                        <h3 class="text-2xl font-bold mb-6 text-white pl-4">Planos e Valores</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            
-                            <!-- Card Plano 1 -->
-                            <div class="glass p-8 rounded-3xl border border-white/5 hover:border-brand-red transition-all group relative overflow-hidden">
-                                <div class="absolute top-0 right-0 bg-white/10 px-3 py-1 rounded-bl-xl text-xs font-bold text-gray-300">MENSAL</div>
-                                <h4 class="text-xl font-bold text-white mb-2">Cross Standard</h4>
-                                <div class="flex items-end gap-1 mb-6">
-                                    <span class="text-sm text-gray-400 pb-1">R$</span>
-                                    <span class="text-4xl font-black text-white">100</span> <!-- Valor Placeholder -->
-                                    <span class="text-sm text-gray-400 pb-1">/mês</span>
-                                </div>
-                                <ul class="space-y-3 mb-8 text-sm text-gray-300">
-                                    <li class="flex items-center gap-2"><i class="fas fa-check text-brand-red"></i> Acesso total às aulas</li>
-                                    <li class="flex items-center gap-2"><i class="fas fa-check text-brand-red"></i> Hitbox incluso</li>
-                                    <li class="flex items-center gap-2"><i class="fas fa-check text-brand-red"></i> Sem taxa de matrícula</li>
-                                </ul>
-                                <button class="w-full py-3 rounded-xl bg-white/5 hover:bg-brand-red text-white font-bold transition-all group-hover:shadow-lg group-hover:shadow-brand-red/20">
-                                    Escolher Plano
-                                </button>
-                            </div>
-
-                            <!-- Card Plano 2 (Destaque) -->
-                            <div class="glass p-8 rounded-3xl border border-brand-red relative overflow-hidden transform md:-translate-y-4 shadow-2xl shadow-brand-red/10">
-                                <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-red to-purple-600"></div>
-                                <div class="absolute top-4 right-4 text-brand-red text-2xl"><i class="fas fa-crown"></i></div>
-                                
-                                <h4 class="text-xl font-bold text-white mb-2">Cross PRO</h4>
-                                <div class="flex items-end gap-1 mb-6">
-                                    <span class="text-sm text-gray-400 pb-1">R$</span>
-                                    <span class="text-4xl font-black text-brand-red">250</span> <!-- Valor Placeholder -->
-                                    <span class="text-sm text-gray-400 pb-1">/trimestre</span>
-                                </div>
-                                <ul class="space-y-3 mb-8 text-sm text-gray-300">
-                                    <li class="flex items-center gap-2"><i class="fas fa-check text-brand-red"></i> Tudo do plano mensal</li>
-                                    <li class="flex items-center gap-2"><i class="fas fa-check text-brand-red"></i> Avaliação física</li>
-                                    <li class="flex items-center gap-2"><i class="fas fa-check text-brand-red"></i> Desconto exclusivo</li>
-                                </ul>
-                                <button class="w-full py-3 rounded-xl bg-brand-red text-white font-bold transition-all hover:bg-red-700 shadow-lg shadow-brand-red/30">
-                                    Quero ser PRO
-                                </button>
-                            </div>
-
+                    <div class="flex-1 w-full relative">
+                        <div class="relative h-64 w-full rounded-2xl overflow-hidden shadow-sm border border-white/50 dark:border-white/10">
+                            <img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/casal.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL2Nhc2FsLmpwZyIsImlhdCI6MTc3MDAzNTM2OSwiZXhwIjoxODAxNTcxMzY5fQ.xYqFSU_rGusNXYM0HMb2u7YizILGoj9eNXjmjsOMOsQ" class="slider-img absolute w-full h-full object-cover transition-opacity duration-1000 opacity-100" alt="Fábrica">
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
+
+            <!-- SEÇÃO 3: TIME -->
+            <section class="space-y-8">
+                <div class="text-center space-y-2">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Nosso Time em Ação</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Pessoas reais fazendo a diferença em cada detalhe.</p>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="glass-panel p-2 rounded-2xl">
+                        <div class="h-48 rounded-xl overflow-hidden relative">
+                            <img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/bordado.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL2JvcmRhZG8uanBnIiwiaWF0IjoxNzcwMDM1NTExLCJleHAiOjE4MDE1NzE1MTF9.aybGk-kpEr5ySBeEsaPRcBqS5ChFqlenJ7wsl0UR4t4" alt="Produção" class="w-full h-full object-cover">
+                            <div class="absolute bottom-0 left-0 right-0 bg-black/50 p-2 text-white text-[10px] font-bold text-center backdrop-blur-sm">Produção</div>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-2 rounded-2xl">
+                        <div class="h-48 rounded-xl overflow-hidden relative">
+                            <img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/20914B37-8199-4B03-A071-9F71222D339A.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlLzIwOTE0QjM3LTgxOTktNEIwMy1BMDcxLTlGNzEyMjJEMzM5QS5qcGciLCJpYXQiOjE3NzAwMzYzMjIsImV4cCI6MTgwMTU3MjMyMn0._QaVXH_LEJ5AFROfIKkwqSu-uZVE_oc4ND6qsYCM7WE" alt="Organização" class="w-full h-full object-cover">
+                            <div class="absolute bottom-0 left-0 right-0 bg-black/50 p-2 text-white text-[10px] font-bold text-center backdrop-blur-sm">Organização</div>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-2 rounded-2xl">
+                        <div class="h-48 rounded-xl overflow-hidden relative">
+                            <img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/CB8A9201-3B94-45A4-87BB-47D1EFB76B64.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL0NCOEE5MjAxLTNCOTQtNDVBNC04N0JCLTQ3RDFFRkI3NkI2NC5qcGciLCJpYXQiOjE3NzAwMzYyNTQsImV4cCI6MTgwMTU3MjI1NH0.IpYFD8Gc03WYHxu-Kuq_mUZGGVV0PNCj9_Gdif6QJK8" alt="Qualidade" class="w-full h-full object-cover">
+                            <div class="absolute bottom-0 left-0 right-0 bg-black/50 p-2 text-white text-[10px] font-bold text-center backdrop-blur-sm">Qualidade</div>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-2 rounded-2xl">
+                        <div class="h-48 rounded-xl overflow-hidden relative">
+                            <img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/estoque.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL2VzdG9xdWUuanBnIiwiaWF0IjoxNzcwMDM1NDc0LCJleHAiOjE4MDE1NzE0NzR9.NT8_fmDyjRhu2x26My9IJtu2-td7NSIUIso0u_4T6D8" alt="Logística" class="w-full h-full object-cover">
+                            <div class="absolute bottom-0 left-0 right-0 bg-black/50 p-2 text-white text-[10px] font-bold text-center backdrop-blur-sm">Logística</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 4: INSTAGRAM -->
+            <section class="rounded-[2rem] overflow-hidden shadow-xl border-2 border-plumare-blue bg-plumare-blue/5 dark:bg-plumare-blue/10 backdrop-blur-md">
+                <div class="h-2 bg-plumare-blue w-full"></div>
+                <div class="p-8 flex flex-col items-center text-center space-y-6">
+                    <div class="w-20 h-20 rounded-full p-1 bg-plumare-blue">
+                        <div class="w-full h-full bg-white dark:bg-gray-900 rounded-full flex items-center justify-center">
+                            <i data-lucide="instagram" class="w-10 h-10 text-plumare-blue"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <h2 class="text-2xl font-bold text-plumare-blue">Siga @plumaretextil</h2>
+                        <p class="text-gray-600 dark:text-gray-300">Acompanhe nossos bastidores e novidades.</p>
+                    </div>
+                    <a href="https://www.instagram.com/plumaretextil/" target="_blank" class="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white font-bold shadow-lg hover:scale-105 transition-all">
+                        <i data-lucide="instagram" class="w-5 h-5"></i> Seguir no Instagram
+                    </a>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 5: PRODUTOS -->
+            <section class="space-y-6">
+                <div class="flex items-center justify-between px-2">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Nossos Produtos</h2>
+                    <div class="flex gap-2">
+                        <button id="prev-product" class="glass-button w-8 h-8 rounded-full flex items-center justify-center"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                        <button id="next-product" class="glass-button w-8 h-8 rounded-full flex items-center justify-center"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+                
+                <div class="relative overflow-hidden">
+                    <div id="products-carousel" class="flex transition-all duration-300">
+                        <div class="product-item min-w-full flex justify-center px-2">
+                            <div class="w-full max-w-md glass-panel p-3 rounded-2xl">
+                                <div class="aspect-square w-full rounded-xl overflow-hidden mb-3"><img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/Gemini_Generated_Image_jxtecyjxtecyjxte%202.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL0dlbWluaV9HZW5lcmF0ZWRfSW1hZ2Vfanh0ZWN5anh0ZWN5anh0ZSAyLmpwZyIsImlhdCI6MTc3MDA0NDE2OCwiZXhwIjoxODAxNTgwMTY4fQ.wVGB9cADu8xnDszgKs4qg3-JqJtH_OeeyWFyo9n2YFw" class="w-full h-full object-cover"></div>
+                                <h3 class="font-bold text-lg text-gray-800 dark:text-white px-2">Cortinas Premium</h3>
+                            </div>
+                        </div>
+                        <div class="product-item min-w-full flex justify-center px-2 hidden">
+                            <div class="w-full max-w-md glass-panel p-3 rounded-2xl">
+                                <div class="aspect-square w-full rounded-xl overflow-hidden mb-3"><img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/Gemini_Generated_Image_n3ijlrn3ijlrn3ij.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL0dlbWluaV9HZW5lcmF0ZWRfSW1hZ2VfbjNpamxybjNpamxybjNpai5qcGciLCJpYXQiOjE3NzAwNDQxOTQsImV4cCI6MTgwMTU4MDE5NH0.QxIIxsRF8yFkAUj8TU-tQbSWOwA_PDMLiqMvRsxrMms" class="w-full h-full object-cover"></div>
+                                <h3 class="font-bold text-lg text-gray-800 dark:text-white px-2">Jogos de Cama</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 6: LOCALIZAÇÃO -->
+            <section class="glass-panel p-4 rounded-[2rem]">
+                <div class="flex flex-col md:flex-row gap-6 items-center">
+                    <div class="p-4 md:w-1/3 text-center md:text-left space-y-2">
+                        <h3 class="font-bold text-xl dark:text-white">Visite a Fábrica</h3>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm">Rua K Dist. Industrial, 4<br>Tobias Barreto - SE</p>
+                        <a href="https://maps.app.goo.gl/PMV8atpNPRhSvJaE7" target="_blank" class="inline-block mt-2 text-plumare-blue font-bold text-sm hover:underline">Ver no Mapa &rarr;</a>
+                    </div>
+                    <div class="w-full md:w-2/3 h-48 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
+                 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3914.1716514317063!2d-37.982813199999995!3d-11.174923399999997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x711b2ce7a1be4f9%3A0x289e3e4d5a74588c!2sCentro%20Industrial%20Integrado%20Governador%20Marcelo%20Deda!5e0!3m2!1spt-BR!2sbr!4v1770316332055!5m2!1spt-BR!2sbr" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </section>
 
         </div>
-    </section>
+    </main>
 
-    <!-- Depoimentos -->
-    <section class="py-20 bg-[#0f0f0f]">
-        <div class="max-w-7xl mx-auto px-4">
-            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12 section-title">O que dizem nossos alunos</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="glass p-6 rounded-2xl reveal">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">A</div>
-                        <div>
-                            <p class="font-bold text-sm">Aluna Satisfeita</p>
-                            <div class="flex text-yellow-400 text-xs">
-                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="text-gray-300 italic">"Academia super organizada, <strong class="text-white">professores</strong> atenciosos e o <strong class="text-white">ambiente é top</strong> demais!"</p>
-                </div>
-                <div class="glass p-6 rounded-2xl reveal" style="transition-delay: 100ms;">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-10 h-10 rounded-full bg-brand-red flex items-center justify-center text-white font-bold">J</div>
-                        <div>
-                            <p class="font-bold text-sm">João Silva</p>
-                            <div class="flex text-yellow-400 text-xs">
-                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="text-gray-300 italic">"Ótimo <strong class="text-white">lugar</strong> para quem <strong class="text-white">busca saúde</strong>, bem-estar e motivação no dia a dia."</p>
-                </div>
-                <div class="glass p-6 rounded-2xl reveal" style="transition-delay: 200ms;">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-10 h-10 rounded-full bg-purple-700 flex items-center justify-center text-white font-bold">R</div>
-                        <div>
-                            <p class="font-bold text-sm">Ricardo</p>
-                            <div class="flex text-yellow-400 text-xs">
-                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="text-gray-300 italic">"Bons Equipamentos com boa <strong class="text-white">variedade</strong>!"</p>
-                </div>
+    <!-- NOTIFICAÇÃO LGPD -->
+    <div id="lgpd-banner" class="fixed bottom-4 left-4 right-4 z-50">
+        <div class="glass-panel p-4 rounded-2xl max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xl">
+            <div class="flex items-start gap-3">
+                <i data-lucide="shield-check" class="text-plumare-blue w-6 h-6 shrink-0 mt-1"></i>
+                <p class="text-xs text-gray-600 dark:text-gray-300">Utilizamos cookies para melhorar sua experiência (LGPD).</p>
             </div>
+            <button onclick="document.getElementById('lgpd-banner').style.display='none'" class="px-6 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-bold rounded-xl">Aceitar</button>
         </div>
-    </section>
+    </div>
 
-    <!-- Mapa Integrado -->
-    <section class="h-[400px] w-full relative grayscale hover:grayscale-0 transition-all duration-500">
-        <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3908.773954279093!2d-37.9999999!3d-11.1833333!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x71aa60000000001%3A0x0!2sRua%20Jo%C3%A3o%20Batista%20dos%20Santos%2C%20288!5e0!3m2!1spt-BR!2sbr!4v1620000000000!5m2!1spt-BR!2sbr" 
-            width="100%" 
-            height="100%" 
-            style="border:0;" 
-            allowfullscreen="" 
-            loading="lazy" 
-            referrerpolicy="no-referrer-when-downgrade">
-        </iframe>
-        <div class="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-[#050505] to-transparent pointer-events-none"></div>
-    </section>
-
-    <!-- Footer -->
-    <footer id="contato" class="bg-black py-12 border-t border-white/10">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
-            <div>
-                <h2 class="text-2xl font-black text-white mb-2">PRINCESA <span class="text-brand-red">FIT</span></h2>
-                <p class="text-gray-500 text-sm">© 2026 Princesa Fitness. Todos os direitos reservados.</p>
-            </div>
-            
-            <div class="flex gap-6">
-                <a href="#" class="text-gray-400 hover:text-white text-2xl transition"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="text-gray-400 hover:text-white text-2xl transition"><i class="fab fa-whatsapp"></i></a>
-                <a href="#" class="text-gray-400 hover:text-white text-2xl transition"><i class="fab fa-facebook"></i></a>
+    <!-- Footer Final -->
+    <footer class="mt-8 border-t border-gray-200/60 dark:border-white/5 bg-gray-50/50 dark:bg-black/20 backdrop-blur-lg">
+        <div class="max-w-6xl mx-auto px-6 py-10">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="text-center md:text-left space-y-1">
+                    <p class="text-xs font-bold text-gray-800 dark:text-white tracking-wide uppercase">Plumare Textil</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest">CNPJ: 42.700.046/0001-63</p>
+                    <p class="text-[10px] text-gray-400 mt-2">Copyright © <script>document.write(new Date().getFullYear())</script> Plumare.</p>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] text-gray-400">
+                    <span>Desenvolvido por</span>
+                    <a href="https://www.instagram.com/ramoncmkt/" class="font-bold text-plumare-blue hover:text-plumare-green transition-colors">Agência Responsável</a>
+                </div>
             </div>
         </div>
     </footer>
 
-    <!-- Scripts de Interação -->
-    <script>
-        // --- SPOTLIGHT MOUSE EFFECT ---
-        const heroSection = document.getElementById('hero');
-        const spotlight = document.getElementById('spotlight');
+    <!-- Lógica REACT para os Botões Animados -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-        if (heroSection && spotlight) {
-            heroSection.addEventListener('mousemove', (e) => {
-                const rect = heroSection.getBoundingClientRect();
-                const x = ((e.clientX - rect.left) / rect.width) * 100;
-                const y = ((e.clientY - rect.top) / rect.height) * 100;
-                
-                spotlight.style.setProperty('--x', `${x}%`);
-                spotlight.style.setProperty('--y', `${y}%`);
-            });
-        }
+        const AnimatedButtons = () => {
+            const [loaded, setLoaded] = useState(false);
 
-        // --- MAGNETIC BUTTONS ---
-        const buttons = document.querySelectorAll('.magnetic-btn');
-
-        buttons.forEach(btn => {
-            btn.addEventListener('mousemove', (e) => {
-                const rect = btn.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-                
-                // Mover levemente o botão (efeito magnético)
-                btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
-            });
-
-            btn.addEventListener('mouseleave', () => {
-                // Voltar ao centro
-                btn.style.transform = 'translate(0, 0)';
-            });
-        });
-
-        // Função para troca de Abas (Tabs)
-        function switchTab(tabName) {
-            // Remove active de todos os botões e conteúdos
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active', 'bg-brand-red', 'text-white'));
-            
-            // Adiciona active no selecionado
-            document.getElementById('tab-' + tabName).classList.add('active');
-            
-            // Estiliza o botão ativo
-            const btn = document.getElementById('btn-' + tabName);
-            btn.classList.add('active');
-            
-            // Reseta estilo do botão inativo
-            const otherBtn = tabName === 'academia' ? document.getElementById('btn-studio') : document.getElementById('btn-academia');
-            otherBtn.classList.remove('active');
-
-            // Scroll suave até a seção de modalidades
-            document.getElementById('modalidades').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Lógica de Rotação baseada no Scroll
-        const rotatingElement = document.getElementById('rotating-element');
-        
-        window.addEventListener('scroll', () => {
-            const scrollPosition = window.scrollY;
-            if (rotatingElement) {
-                rotatingElement.style.transform = `rotate(${scrollPosition / 5}deg)`;
-            }
-        });
-
-        // Lógica de "Reveal"
-        function reveal() {
-            var reveals = document.querySelectorAll(".reveal");
-            for (var i = 0; i < reveals.length; i++) {
-                var windowHeight = window.innerHeight;
-                var elementTop = reveals[i].getBoundingClientRect().top;
-                var elementVisible = 150;
-                if (elementTop < windowHeight - elementVisible) {
-                    reveals[i].classList.add("active");
+            // Lista de Botões
+            const buttons = [
+                { 
+                    id: 1,
+                    title: "Atacado", 
+                    subtitle: "Fale com Vendedor", 
+                    icon: "message-circle", 
+                    link: "https://api.whatsapp.com/message/2RURQPNHQBRPI1?autoload=1&app_absent=0",
+                    colorClass: "text-whatsapp",
+                    bgClass: "bg-whatsapp/10"
+                },
+                { 
+                    id: 2,
+                    title: "Grupo VIP", 
+                    subtitle: "Ofertas Exclusivas", 
+                    icon: "users", 
+                    link: "https://chat.whatsapp.com/I7re1TmYKaRGUVm2SUMSku",
+                    colorClass: "text-plumare-blue",
+                    bgClass: "bg-plumare-blue/10"
+                },
+                { 
+                    id: 3,
+                    title: "Varejo", 
+                    subtitle: "Compre no WhatsApp", 
+                    icon: "shopping-bag", 
+                    link: "https://api.whatsapp.com/send?phone=5579999999999&text=Olá,%20gostaria%20de%20ver%20o%20catálogo%20de%20varejo!", // Link genérico - Substituir pelo número correto
+                    colorClass: "text-purple-500", // Cor diferenciada para varejo
+                    bgClass: "bg-purple-500/10"
+                },
+                { 
+                    id: 4,
+                    title: "Nossa história", 
+                    subtitle: "Conheça a Plumare", 
+                    icon: "briefcase", 
+                    link: "#historia",
+                    colorClass: "text-plumare-green",
+                    bgClass: "bg-plumare-green/10"
                 }
-            }
+            ];
+
+            useEffect(() => {
+                // Ativa a animação logo após o componente montar
+                setLoaded(true);
+                // Atualiza ícones Lucide após renderização do React
+                setTimeout(() => lucide.createIcons(), 100);
+            }, []);
+
+            return (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
+                    {buttons.map((btn, index) => (
+                        <a 
+                            key={btn.id}
+                            href={btn.link}
+                            target={btn.link.startsWith('#') ? '_self' : '_blank'}
+                            className={`glass-button-react p-5 rounded-2xl flex items-center gap-4 group transform transition-all duration-700 ease-out
+                                ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
+                            `}
+                            style={{ transitionDelay: `${index * 150}ms` }} // Efeito cascata (stagger)
+                        >
+                            <div className={`w-12 h-12 rounded-full ${btn.bgClass} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                                <i data-lucide={btn.icon} className={`w-6 h-6 ${btn.colorClass}`}></i>
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-lg text-gray-800 dark:text-white">{btn.title}</h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{btn.subtitle}</p>
+                            </div>
+                            <i data-lucide="chevron-right" className="w-5 h-5 text-gray-300 ml-auto group-hover:text-plumare-blue transition-colors"></i>
+                        </a>
+                    ))}
+                </div>
+            );
+        };
+
+        const rootElement = document.getElementById('react-buttons-root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<AnimatedButtons />);
+    </script>
+
+    <!-- Scripts Legados (Não-React) -->
+    <script>
+        lucide.createIcons();
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
         }
-        window.addEventListener("scroll", reveal);
-        reveal();
+
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        // Slideshow História
+        const images = document.querySelectorAll('.slider-img');
+        let currentImg = 0;
+        function nextImage() {
+            if(images.length < 2) return;
+            images[currentImg].classList.replace('opacity-100', 'opacity-0');
+            currentImg = (currentImg + 1) % images.length;
+            images[currentImg].classList.replace('opacity-0', 'opacity-100');
+        }
+        if(images.length > 1) setInterval(nextImage, 4000);
+
+        // Carrossel Produtos
+        const productsCarousel = document.getElementById('products-carousel');
+        const productItems = document.querySelectorAll('.product-item');
+        let currentProd = 0;
+
+        function showProd(index) {
+            productItems[currentProd].classList.add('hidden');
+            currentProd = index;
+            productItems[currentProd].classList.remove('hidden');
+        }
+
+        document.getElementById('next-product').onclick = () => showProd((currentProd + 1) % productItems.length);
+        document.getElementById('prev-product').onclick = () => showProd((currentProd - 1 + productItems.length) % productItems.length);
+
+        // Video Player Simplificado
+        const video = document.getElementById('plumare-video');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const progressFill = document.getElementById('progress-fill');
+        const videoControls = document.getElementById('video-controls');
+
+        playPauseBtn.onclick = () => {
+            if (video.paused) {
+                video.play();
+                document.getElementById('play-icon').classList.add('hidden');
+                document.getElementById('pause-icon').classList.remove('hidden');
+            } else {
+                video.pause();
+                document.getElementById('play-icon').classList.remove('hidden');
+                document.getElementById('pause-icon').classList.add('hidden');
+            }
+        };
+
+        video.ontimeupdate = () => {
+            const progress = (video.currentTime / video.duration) * 100;
+            progressFill.style.width = progress + '%';
+            document.getElementById('current-time').textContent = Math.floor(video.currentTime/60) + ":" + Math.floor(video.currentTime%60).toString().padStart(2,'0');
+        };
+
+        video.onloadedmetadata = () => {
+            document.getElementById('duration').textContent = Math.floor(video.duration/60) + ":" + Math.floor(video.duration%60).toString().padStart(2,'0');
+        };
+
+        video.parentElement.onmouseenter = () => videoControls.style.opacity = '1';
+        video.parentElement.onmouseleave = () => { if(!video.paused) videoControls.style.opacity = '0'; };
     </script>
 </body>
 </html>
