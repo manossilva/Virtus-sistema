@@ -1,543 +1,828 @@
 <!DOCTYPE html>
-<html lang="pt-br" class="scroll-smooth">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plumare | Indústria e Comércio de Cama, Mesa e Banho</title>
-    
-    <!-- Fonte Comfortaa -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
+    <title>Virtus | Gestão de Construção Completa</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Lucide Icons (Ícones) -->
+    <!-- Ícones Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- React e ReactDOM (Para animações) -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <!-- Babel (Para compilar JSX no navegador) -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <!-- Configurações do Tema -->
-    <script>
-        tailwind.config = {
-            darkMode: 'class', 
-            theme: {
-                extend: {
-                    colors: {
-                        plumare: {
-                            blue: '#5EB2F0',
-                            green: '#6EEBCC',
-                            black: '#000000',
-                            bg: '#fbfbfd',
-                            dark: '#0f0f11',
-                        },
-                        shopee: '#EE4D2D',
-                        whatsapp: '#25D366',
-                        instagram: '#C13584'
-                    },
-                    fontFamily: {
-                        sans: ['Comfortaa', 'sans-serif'],
-                    },
-                    animation: {
-                        'float': 'float 8s ease-in-out infinite',
-                        'float-delayed': 'float 9s ease-in-out 3s infinite',
-                        'fade-in-up': 'fadeInUp 0.8s ease-out',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
-                            '50%': { transform: 'translateY(-15px) rotate(3deg)' },
-                        },
-                        fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Fonte Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         body {
-            background-color: #fbfbfd;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(94, 178, 240, 0.08) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(110, 235, 204, 0.08) 0px, transparent 50%);
-            background-attachment: fixed;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            transition: background-color 0.5s ease;
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
         }
 
-        .dark body {
-            background-color: #0f0f11;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(94, 178, 240, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(110, 235, 204, 0.15) 0px, transparent 50%);
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d1d6; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #aeaeb2; }
+
+        .apple-card {
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
         }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.65);
-            backdrop-filter: saturate(180%) blur(25px);
-            -webkit-backdrop-filter: saturate(180%) blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s ease;
-        }
-
-        .dark .glass-panel {
-            background: rgba(20, 20, 23, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Estilo base para botões React */
-        .glass-button-react {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efeito elástico */
-        }
-
-        .dark .glass-button-react {
-            background: rgba(30, 30, 35, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .apple-btn {
+            background-color: #34c759;
             color: white;
+            transition: transform 0.1s;
+        }
+        .apple-btn:active { transform: scale(0.98); }
+        .apple-btn:hover { background-color: #2eb14d; }
+
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Animação de Atraso (Piscando) */
+        @keyframes blink-red {
+            0% { border-color: #ef4444; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { border-color: #fca5a5; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1); }
+            100% { border-color: #ef4444; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        }
+        .overdue-pulse {
+            animation: blink-red 2s infinite;
+            border: 2px solid #ef4444 !important;
         }
 
-        .glass-button-react:hover {
-            transform: scale(1.03) translateY(-2px);
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-        }
-        .dark .glass-button-react:hover {
-            background: rgba(40, 40, 45, 0.9);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        }
-
-        .glass-button {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .dark .glass-button {
-            background: rgba(30, 30, 35, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .glass-button:hover {
-            transform: scale(1.02);
-            background: rgba(255, 255, 255, 0.95);
-        }
-        .dark .glass-button:hover {
-            background: rgba(40, 40, 45, 0.9);
-        }
-
-        .nav-slim { height: 70px; }
+        /* Etiquetas de Setor */
+        .sector-financeiro { background-color: #fee2e2; color: #991b1b; }
+        .sector-engenharia { background-color: #e0f2fe; color: #075985; }
+        .sector-marketing { background-color: #fce7f3; color: #9d174d; }
+        .sector-atendimento { background-color: #fef3c7; color: #92400e; }
+        .sector-ceo { background-color: #f3f4f6; color: #1f2937; }
         
-        /* Utilitários */
-        .text-gradient {
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            background-image: linear-gradient(135deg, #1d1d1f 0%, #4a4a4a 100%);
-        }
-        .dark .text-gradient {
-            background-image: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+        /* Layout de Impressão (Ficha do Cliente) */
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white; padding: 40px; }
         }
     </style>
 </head>
-<body class="text-[#1d1d1f] dark:text-gray-100 font-sans selection:bg-plumare-green/30 selection:text-plumare-black transition-colors duration-500">
+<body class="h-screen overflow-hidden flex flex-col">
 
-    <!-- Background Decorativo -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-plumare-blue/5 rounded-full filter blur-[100px] animate-float"></div>
-        <div class="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-plumare-green/5 rounded-full filter blur-[80px] animate-float-delayed"></div>
-    </div>
+    <div id="app" class="flex h-full w-full"></div>
 
-    <!-- HEADER SLIM -->
-    <header class="fixed top-0 w-full z-50 glass-panel border-b border-white/20 dark:border-white/5 nav-slim transition-all duration-300">
-        <div class="max-w-6xl mx-auto px-4 h-full flex items-center justify-between">
-            <div class="flex items-center gap-3 group">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-plumare-blue/20 to-plumare-green/20 flex items-center justify-center overflow-hidden border border-white/50 dark:border-white/10 relative">
-                    <img id="logo-preview" src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/logo.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL2xvZ28ucG5nIiwiaWF0IjoxNzcwMDM1MzIzLCJleHAiOjE4MDE1NzEzMjN9.sOgLySmkvZ99jL1ZYZ4vkldr7fn_DvvaXDGtWm-phak" alt="Logo" class="w-full h-full object-cover p-1">
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-lg font-bold tracking-tight text-plumare-blue leading-none">PLUMARE</span>
-                    <span class="text-[0.6rem] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Textil</span>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-3">
-                <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-gray-600 dark:text-gray-300">
-                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
-                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
-                </button>
-                <a href="https://instagram.com/plumaremkt" target="_blank" class="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/5 dark:bg-white/10 hover:bg-instagram-gradient hover:text-white transition-all text-xs font-bold text-gray-600 dark:text-gray-300">
-                    <i data-lucide="instagram" class="w-4 h-4"></i>
-                    @plumaremkt
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <div class="pt-24"></div>
-
-    <!-- CONTEÚDO PRINCIPAL -->
-    <main class="relative z-10 pb-12 px-4">
-        <div class="max-w-4xl mx-auto space-y-16 md:space-y-24">
-
-            <!-- SEÇÃO 1: BOTÕES REACT -->
-            <!-- Aqui inserimos o componente React -->
-            <div id="react-buttons-root"></div>
-
-            <!-- SEÇÃO DE VÍDEO -->
-            <section class="glass-panel p-6 rounded-[2rem]">
-                <div class="text-center mb-6">
-                    <h2 class="text-2xl font-bold text-plumare-blue mb-2">Conheça Nossa História</h2>
-                    <p class="text-gray-600 dark:text-gray-300">Descubra como transformamos sonhos em realidade</p>
-                </div>
-
-                <div class="relative w-full max-w-md mx-auto">
-                    <div class="relative rounded-2xl overflow-hidden bg-black shadow-2xl">
-                        <video id="plumare-video" class="w-full aspect-[9/16]" poster="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/casal.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL2Nhc2FsLmpwZyIsImlhdCI6MTc3MDAzNTM2OSwiZXhwIjoxODAxNTcxMzY5fQ.xYqFSU_rGusNXYM0HMb2u7YizILGoj9eNXjmjsOMOsQ">
-                            <source src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/video%20institucional%20.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL3ZpZGVvIGluc3RpdHVjaW9uYWwgLm1wNCIsImlhdCI6MTc3MDA0MzUyMiwiZXhwIjoxODAxNTc5NTIyfQ.OTf7lzj7_gJRZhQQ0Z2hq7IxXcYaKF3XmpAu6k9nVK4" type="video/mp4">
-                        </video>
-
-                        <div id="video-controls" class="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm transition-opacity duration-300 opacity-0">
-                            <button id="play-pause-btn" class="glass-panel w-20 h-20 rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-2xl">
-                                <i id="play-icon" data-lucide="play" class="w-10 h-10 text-plumare-blue"></i>
-                                <i id="pause-icon" data-lucide="pause" class="w-10 h-10 text-plumare-blue hidden"></i>
-                            </button>
-                        </div>
-
-                        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-                            <div class="flex items-center gap-3">
-                                <span id="current-time" class="text-white text-xs font-mono min-w-[40px]">0:00</span>
-                                <div class="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden cursor-pointer" id="progress-bar">
-                                    <div id="progress-fill" class="h-full bg-gradient-to-r from-plumare-blue to-plumare-green rounded-full w-0 transition-all"></div>
-                                </div>
-                                <span id="duration" class="text-white text-xs font-mono min-w-[40px]">0:00</span>
-                                <button id="mute-btn" class="text-white">
-                                    <i id="volume-icon" data-lucide="volume-2" class="w-5 h-5"></i>
-                                    <i id="mute-icon" data-lucide="volume-x" class="w-5 h-5 hidden"></i>
-                                </button>
-                                <button id="fullscreen-btn" class="text-white">
-                                    <i data-lucide="maximize" class="w-5 h-5"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- SEÇÃO 2: HISTÓRIA -->
-            <section id="historia" class="glass-panel p-8 md:p-12 rounded-[2rem]">
-                <div class="flex flex-col md:flex-row gap-10 items-center">
-                    <div class="flex-1 space-y-6 text-center md:text-left">
-                        <h2 class="text-3xl font-bold text-gradient">Nossa História</h2>
-                        <p class="text-gray-500 dark:text-gray-300 leading-relaxed text-lg font-light">
-                            Nascemos da paixão por transformar fios em conforto. Em nossa fábrica em Tobias Barreto, unimos tecnologia e acabamento artesanal para criar o enxoval perfeito para o seu lar.
-                        </p>
-                    </div>
-                    <div class="flex-1 w-full relative">
-                        <div class="relative h-64 w-full rounded-2xl overflow-hidden shadow-sm border border-white/50 dark:border-white/10">
-                            <img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/casal.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL2Nhc2FsLmpwZyIsImlhdCI6MTc3MDAzNTM2OSwiZXhwIjoxODAxNTcxMzY5fQ.xYqFSU_rGusNXYM0HMb2u7YizILGoj9eNXjmjsOMOsQ" class="slider-img absolute w-full h-full object-cover transition-opacity duration-1000 opacity-100" alt="Fábrica">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- SEÇÃO 3: TIME -->
-            <section class="space-y-8">
-                <div class="text-center space-y-2">
-                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Nosso Time em Ação</h2>
-                    <p class="text-gray-500 dark:text-gray-400 text-sm">Pessoas reais fazendo a diferença em cada detalhe.</p>
-                </div>
-                
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="glass-panel p-2 rounded-2xl">
-                        <div class="h-48 rounded-xl overflow-hidden relative">
-                            <img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/bordado.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL2JvcmRhZG8uanBnIiwiaWF0IjoxNzcwMDM1NTExLCJleHAiOjE4MDE1NzE1MTF9.aybGk-kpEr5ySBeEsaPRcBqS5ChFqlenJ7wsl0UR4t4" alt="Produção" class="w-full h-full object-cover">
-                            <div class="absolute bottom-0 left-0 right-0 bg-black/50 p-2 text-white text-[10px] font-bold text-center backdrop-blur-sm">Produção</div>
-                        </div>
-                    </div>
-                    <div class="glass-panel p-2 rounded-2xl">
-                        <div class="h-48 rounded-xl overflow-hidden relative">
-                            <img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/20914B37-8199-4B03-A071-9F71222D339A.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlLzIwOTE0QjM3LTgxOTktNEIwMy1BMDcxLTlGNzEyMjJEMzM5QS5qcGciLCJpYXQiOjE3NzAwMzYzMjIsImV4cCI6MTgwMTU3MjMyMn0._QaVXH_LEJ5AFROfIKkwqSu-uZVE_oc4ND6qsYCM7WE" alt="Organização" class="w-full h-full object-cover">
-                            <div class="absolute bottom-0 left-0 right-0 bg-black/50 p-2 text-white text-[10px] font-bold text-center backdrop-blur-sm">Organização</div>
-                        </div>
-                    </div>
-                    <div class="glass-panel p-2 rounded-2xl">
-                        <div class="h-48 rounded-xl overflow-hidden relative">
-                            <img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/CB8A9201-3B94-45A4-87BB-47D1EFB76B64.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL0NCOEE5MjAxLTNCOTQtNDVBNC04N0JCLTQ3RDFFRkI3NkI2NC5qcGciLCJpYXQiOjE3NzAwMzYyNTQsImV4cCI6MTgwMTU3MjI1NH0.IpYFD8Gc03WYHxu-Kuq_mUZGGVV0PNCj9_Gdif6QJK8" alt="Qualidade" class="w-full h-full object-cover">
-                            <div class="absolute bottom-0 left-0 right-0 bg-black/50 p-2 text-white text-[10px] font-bold text-center backdrop-blur-sm">Qualidade</div>
-                        </div>
-                    </div>
-                    <div class="glass-panel p-2 rounded-2xl">
-                        <div class="h-48 rounded-xl overflow-hidden relative">
-                            <img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/estoque.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL2VzdG9xdWUuanBnIiwiaWF0IjoxNzcwMDM1NDc0LCJleHAiOjE4MDE1NzE0NzR9.NT8_fmDyjRhu2x26My9IJtu2-td7NSIUIso0u_4T6D8" alt="Logística" class="w-full h-full object-cover">
-                            <div class="absolute bottom-0 left-0 right-0 bg-black/50 p-2 text-white text-[10px] font-bold text-center backdrop-blur-sm">Logística</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- SEÇÃO 4: INSTAGRAM -->
-            <section class="rounded-[2rem] overflow-hidden shadow-xl border-2 border-plumare-blue bg-plumare-blue/5 dark:bg-plumare-blue/10 backdrop-blur-md">
-                <div class="h-2 bg-plumare-blue w-full"></div>
-                <div class="p-8 flex flex-col items-center text-center space-y-6">
-                    <div class="w-20 h-20 rounded-full p-1 bg-plumare-blue">
-                        <div class="w-full h-full bg-white dark:bg-gray-900 rounded-full flex items-center justify-center">
-                            <i data-lucide="instagram" class="w-10 h-10 text-plumare-blue"></i>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <h2 class="text-2xl font-bold text-plumare-blue">Siga @plumaretextil</h2>
-                        <p class="text-gray-600 dark:text-gray-300">Acompanhe nossos bastidores e novidades.</p>
-                    </div>
-                    <a href="https://www.instagram.com/plumaretextil/" target="_blank" class="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white font-bold shadow-lg hover:scale-105 transition-all">
-                        <i data-lucide="instagram" class="w-5 h-5"></i> Seguir no Instagram
-                    </a>
-                </div>
-            </section>
-
-            <!-- SEÇÃO 5: PRODUTOS -->
-            <section class="space-y-6">
-                <div class="flex items-center justify-between px-2">
-                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Nossos Produtos</h2>
-                    <div class="flex gap-2">
-                        <button id="prev-product" class="glass-button w-8 h-8 rounded-full flex items-center justify-center"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-                        <button id="next-product" class="glass-button w-8 h-8 rounded-full flex items-center justify-center"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-                    </div>
-                </div>
-                
-                <div class="relative overflow-hidden">
-                    <div id="products-carousel" class="flex transition-all duration-300">
-                        <div class="product-item min-w-full flex justify-center px-2">
-                            <div class="w-full max-w-md glass-panel p-3 rounded-2xl">
-                                <div class="aspect-square w-full rounded-xl overflow-hidden mb-3"><img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/Gemini_Generated_Image_jxtecyjxtecyjxte%202.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL0dlbWluaV9HZW5lcmF0ZWRfSW1hZ2Vfanh0ZWN5anh0ZWN5anh0ZSAyLmpwZyIsImlhdCI6MTc3MDA0NDE2OCwiZXhwIjoxODAxNTgwMTY4fQ.wVGB9cADu8xnDszgKs4qg3-JqJtH_OeeyWFyo9n2YFw" class="w-full h-full object-cover"></div>
-                                <h3 class="font-bold text-lg text-gray-800 dark:text-white px-2">Cortinas Premium</h3>
-                            </div>
-                        </div>
-                        <div class="product-item min-w-full flex justify-center px-2 hidden">
-                            <div class="w-full max-w-md glass-panel p-3 rounded-2xl">
-                                <div class="aspect-square w-full rounded-xl overflow-hidden mb-3"><img src="https://hfqcnejztaczhxattlsx.supabase.co/storage/v1/object/sign/Arquivos%20site/Gemini_Generated_Image_n3ijlrn3ijlrn3ij.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYmU5YzEyYy0yYzBiLTQwMDItOTA0Mi0xMzU1YWNkMWQ1ZTMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcnF1aXZvcyBzaXRlL0dlbWluaV9HZW5lcmF0ZWRfSW1hZ2VfbjNpamxybjNpamxybjNpai5qcGciLCJpYXQiOjE3NzAwNDQxOTQsImV4cCI6MTgwMTU4MDE5NH0.QxIIxsRF8yFkAUj8TU-tQbSWOwA_PDMLiqMvRsxrMms" class="w-full h-full object-cover"></div>
-                                <h3 class="font-bold text-lg text-gray-800 dark:text-white px-2">Jogos de Cama</h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- SEÇÃO 6: LOCALIZAÇÃO -->
-            <section class="glass-panel p-4 rounded-[2rem]">
-                <div class="flex flex-col md:flex-row gap-6 items-center">
-                    <div class="p-4 md:w-1/3 text-center md:text-left space-y-2">
-                        <h3 class="font-bold text-xl dark:text-white">Visite a Fábrica</h3>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm">Rua K Dist. Industrial, 4<br>Tobias Barreto - SE</p>
-                        <a href="https://maps.app.goo.gl/PMV8atpNPRhSvJaE7" target="_blank" class="inline-block mt-2 text-plumare-blue font-bold text-sm hover:underline">Ver no Mapa &rarr;</a>
-                    </div>
-                    <div class="w-full md:w-2/3 h-48 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
-                 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3914.1716514317063!2d-37.982813199999995!3d-11.174923399999997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x711b2ce7a1be4f9%3A0x289e3e4d5a74588c!2sCentro%20Industrial%20Integrado%20Governador%20Marcelo%20Deda!5e0!3m2!1spt-BR!2sbr!4v1770316332055!5m2!1spt-BR!2sbr" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                </div>
-            </section>
-
-        </div>
-    </main>
-
-    <!-- NOTIFICAÇÃO LGPD -->
-    <div id="lgpd-banner" class="fixed bottom-4 left-4 right-4 z-50">
-        <div class="glass-panel p-4 rounded-2xl max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xl">
-            <div class="flex items-start gap-3">
-                <i data-lucide="shield-check" class="text-plumare-blue w-6 h-6 shrink-0 mt-1"></i>
-                <p class="text-xs text-gray-600 dark:text-gray-300">Utilizamos cookies para melhorar sua experiência (LGPD).</p>
-            </div>
-            <button onclick="document.getElementById('lgpd-banner').style.display='none'" class="px-6 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-bold rounded-xl">Aceitar</button>
+    <!-- MODAL GLOBAL -->
+    <div id="modal-overlay" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div id="modal-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all p-6 relative">
+            <!-- Conteúdo dinâmico -->
         </div>
     </div>
 
-    <!-- Footer Final -->
-    <footer class="mt-8 border-t border-gray-200/60 dark:border-white/5 bg-gray-50/50 dark:bg-black/20 backdrop-blur-lg">
-        <div class="max-w-6xl mx-auto px-6 py-10">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
-                <div class="text-center md:text-left space-y-1">
-                    <p class="text-xs font-bold text-gray-800 dark:text-white tracking-wide uppercase">Plumare Textil</p>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest">CNPJ: 42.700.046/0001-63</p>
-                    <p class="text-[10px] text-gray-400 mt-2">Copyright © <script>document.write(new Date().getFullYear())</script> Plumare.</p>
+    <!-- ÁREA DE IMPRESSÃO (Escondida na tela) -->
+    <div id="print-area" class="hidden bg-white"></div>
+
+    <script>
+        // --- 1. DADOS E CONFIGURAÇÕES ---
+
+        // Fases da Obra Minha Casa Minha Vida (22 Fases)
+        const fasesObra = [
+            "1. Simulação Crédito", "2. Doc. Pessoais", "3. Aprovação Crédito", "4. Assinatura Caixa", 
+            "5. Alvará Prefeitura", "6. Projetos Eng/Arq", "7. Limpeza Terreno", "8. Locação/Gabarito", 
+            "9. Fundação", "10. Impermeabilização", "11. Alvenaria", "12. Vergas/Contravergas", 
+            "13. Laje/Cinta", "14. Telhado", "15. Hidráulica", "16. Elétrica", 
+            "17. Reboco Interno", "18. Reboco Externo", "19. Contrapiso", "20. Revestimentos", 
+            "21. Pintura/Acabam.", "22. Entrega Chaves"
+        ];
+
+        const usuarios = [
+            { id: 1, nome: 'Roberto (CEO)', cargo: 'CEO' },
+            { id: 2, nome: 'Ana (Finanças)', cargo: 'Financeiro' },
+            { id: 3, nome: 'Eng. Carlos', cargo: 'Engenharia' },
+            { id: 4, nome: 'Marcos (Mkt)', cargo: 'Marketing' }
+        ];
+
+        const setores = ['Financeiro', 'Engenharia', 'Marketing', 'Atendimento', 'CEO'];
+
+        let state = {
+            currentUser: null,
+            tasks: [], // Demandas Internas
+            clientes: [], // Base de Clientes
+            obras: [], // Cards do Kanban de Obras
+            financas: {
+                saldo: 150000.00,
+                transacoes: [ 
+                    { id: 1, tipo: 'saida', desc: 'Cimento Votoran', valor: 5000, data: '2023-11-20', metodo: 'Boleto', entidade: 'Depósito São José', status: 'pago' },
+                    { id: 2, tipo: 'entrada', desc: 'Entrada Casa Sr. João', valor: 25000, data: '2023-11-18', metodo: 'Pix', entidade: 'João Silva', status: 'recebido' }
+                ]
+            },
+            agendaCEO: [],
+            notificacoes: []
+        };
+
+        // --- 2. PERSISTÊNCIA ---
+
+        function loadState() {
+            const saved = localStorage.getItem('virtusState_v3');
+            if (saved) {
+                state = JSON.parse(saved);
+            } else {
+                // Seed inicial
+                state.clientes.push({
+                    id: 1, nome: 'João Silva', cpf: '123.456.789-00', nasc: '1985-05-20', 
+                    endereco: 'Rua das Flores, 123', fotoDoc: 'cnh_joao.jpg', fachada: 'casa_moderna_1.jpg'
+                });
+                state.obras.push({
+                    id: 101, clienteId: 1, fase: '9. Fundação', prazo: '2023-11-10' // Atrasado propositalmente
+                });
+                state.tasks.push({
+                    id: 201, titulo: 'Aprovar Orçamento Mkt', setor: 'Marketing', responsavel: 'Roberto (CEO)', 
+                    prazo: '2023-11-25', status: 'todo', desc: 'Aprovar verba para Facebook Ads', prioridade: 'alta'
+                });
+                saveState();
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('virtusState_v3', JSON.stringify(state));
+            if(document.getElementById('app').innerHTML !== '') renderApp();
+        }
+
+        function init() { loadState(); renderApp(); }
+
+        // --- 3. RENDERIZAÇÃO GERAL ---
+
+        function renderApp() {
+            const app = document.getElementById('app');
+            if (!state.currentUser) {
+                renderLogin(app);
+            } else {
+                renderDashboard(app);
+                lucide.createIcons();
+            }
+        }
+
+        function renderLogin(container) {
+            container.innerHTML = `
+                <div class="m-auto w-full max-w-md p-8 fade-in">
+                    <div class="text-center mb-10">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-green-100 text-green-600 mb-4">
+                            <i data-lucide="building-2" class="w-8 h-8"></i>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-900">Virtus Construct</h1>
+                        <p class="text-gray-500">Sistema Integrado de Gestão</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
+                        <select id="loginSelect" class="w-full p-3 bg-gray-50 border rounded-xl mb-6">
+                            ${usuarios.map(u => `<option value="${u.id}">${u.nome} - ${u.cargo}</option>`).join('')}
+                        </select>
+                        <button onclick="login(parseInt(document.getElementById('loginSelect').value))" class="w-full apple-btn py-3.5 rounded-xl font-medium shadow-lg shadow-green-500/30">Entrar</button>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2 text-[10px] text-gray-400">
-                    <span>Desenvolvido por</span>
-                    <a href="https://www.instagram.com/ramoncmkt/" class="font-bold text-plumare-blue hover:text-plumare-green transition-colors">Agência Responsável</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+            `;
+            lucide.createIcons();
+        }
 
-    <!-- Lógica REACT para os Botões Animados -->
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+        function login(id) {
+            state.currentUser = usuarios.find(u => u.id === id);
+            saveState();
+        }
+        function logout() {
+            state.currentUser = null;
+            saveState();
+        }
 
-        const AnimatedButtons = () => {
-            const [loaded, setLoaded] = useState(false);
+        // --- DASHBOARD ---
+        let currentPage = 'kanban_interno'; // Página inicial para demonstrar a mudança
 
-            // Lista de Botões
-            const buttons = [
-                { 
-                    id: 1,
-                    title: "Atacado", 
-                    subtitle: "Fale com Vendedor", 
-                    icon: "message-circle", 
-                    link: "https://api.whatsapp.com/message/2RURQPNHQBRPI1?autoload=1&app_absent=0",
-                    colorClass: "text-whatsapp",
-                    bgClass: "bg-whatsapp/10"
-                },
-                { 
-                    id: 2,
-                    title: "Grupo VIP", 
-                    subtitle: "Ofertas Exclusivas", 
-                    icon: "users", 
-                    link: "https://chat.whatsapp.com/I7re1TmYKaRGUVm2SUMSku",
-                    colorClass: "text-plumare-blue",
-                    bgClass: "bg-plumare-blue/10"
-                },
-                { 
-                    id: 3,
-                    title: "Varejo", 
-                    subtitle: "Compre no WhatsApp", 
-                    icon: "shopping-bag", 
-                    link: "https://api.whatsapp.com/send?phone=5579999999999&text=Olá,%20gostaria%20de%20ver%20o%20catálogo%20de%20varejo!", // Link genérico - Substituir pelo número correto
-                    colorClass: "text-purple-500", // Cor diferenciada para varejo
-                    bgClass: "bg-purple-500/10"
-                },
-                { 
-                    id: 4,
-                    title: "Nossa história", 
-                    subtitle: "Conheça a Plumare", 
-                    icon: "briefcase", 
-                    link: "#historia",
-                    colorClass: "text-plumare-green",
-                    bgClass: "bg-plumare-green/10"
-                }
+        function renderDashboard(container) {
+            const user = state.currentUser;
+            const menuItems = [
+                { id: 'kanban_obras', label: 'Obras MCMV', icon: 'hard-hat' },
+                { id: 'kanban_interno', label: 'Demandas Internas', icon: 'trello' },
+                { id: 'clientes', label: 'Base de Clientes', icon: 'users' },
+                { id: 'financeiro', label: 'Financeiro', icon: 'wallet', restricted: true },
+                { id: 'agenda', label: 'Agenda', icon: 'calendar' }
             ];
 
-            useEffect(() => {
-                // Ativa a animação logo após o componente montar
-                setLoaded(true);
-                // Atualiza ícones Lucide após renderização do React
-                setTimeout(() => lucide.createIcons(), 100);
-            }, []);
+            const sidebar = `
+                <nav class="w-64 bg-white border-r border-gray-200 flex flex-col p-6 hidden md:flex z-10">
+                    <div class="flex items-center gap-3 mb-10 text-green-600">
+                        <i data-lucide="hexagon" class="fill-current w-6 h-6"></i>
+                        <span class="font-bold text-xl text-gray-800">Virtus</span>
+                    </div>
+                    <div class="space-y-1 flex-1">
+                        ${menuItems.map(item => {
+                            if (item.restricted && user.cargo !== 'CEO' && user.cargo !== 'Financeiro') return '';
+                            return `
+                            <button onclick="setPage('${item.id}')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${currentPage === item.id ? 'bg-green-50 text-green-700' : 'text-gray-600 hover:bg-gray-50'}">
+                                <i data-lucide="${item.icon}" class="w-5 h-5"></i> ${item.label}
+                            </button>`;
+                        }).join('')}
+                    </div>
+                    <div class="mt-auto pt-6 border-t border-gray-100">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600 text-xs">${user.nome.charAt(0)}</div>
+                            <div class="text-sm"><p class="font-medium truncate w-32">${user.nome}</p><p class="text-xs text-gray-500">${user.cargo}</p></div>
+                        </div>
+                        <button onclick="logout()" class="text-red-500 text-xs font-medium hover:underline">Sair do sistema</button>
+                    </div>
+                </nav>
+            `;
 
-            return (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
-                    {buttons.map((btn, index) => (
-                        <a 
-                            key={btn.id}
-                            href={btn.link}
-                            target={btn.link.startsWith('#') ? '_self' : '_blank'}
-                            className={`glass-button-react p-5 rounded-2xl flex items-center gap-4 group transform transition-all duration-700 ease-out
-                                ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
-                            `}
-                            style={{ transitionDelay: `${index * 150}ms` }} // Efeito cascata (stagger)
-                        >
-                            <div className={`w-12 h-12 rounded-full ${btn.bgClass} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                                <i data-lucide={btn.icon} className={`w-6 h-6 ${btn.colorClass}`}></i>
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-lg text-gray-800 dark:text-white">{btn.title}</h3>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{btn.subtitle}</p>
-                            </div>
-                            <i data-lucide="chevron-right" className="w-5 h-5 text-gray-300 ml-auto group-hover:text-plumare-blue transition-colors"></i>
-                        </a>
-                    ))}
-                </div>
-            );
-        };
-
-        const rootElement = document.getElementById('react-buttons-root');
-        const root = ReactDOM.createRoot(rootElement);
-        root.render(<AnimatedButtons />);
-    </script>
-
-    <!-- Scripts Legados (Não-React) -->
-    <script>
-        lucide.createIcons();
-
-        function toggleTheme() {
-            const html = document.documentElement;
-            html.classList.toggle('dark');
-            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+            const content = `
+                <main class="flex-1 flex flex-col min-w-0 bg-[#f5f5f7] h-full">
+                    <header class="h-16 px-8 flex items-center justify-between bg-white/50 backdrop-blur-md border-b border-gray-200 sticky top-0 z-20">
+                        <h2 class="text-lg font-semibold text-gray-800 capitalize">${menuItems.find(i => i.id === currentPage)?.label || currentPage}</h2>
+                        <div class="flex items-center gap-4">
+                            <button class="p-2 rounded-full hover:bg-gray-100 relative">
+                                <i data-lucide="bell" class="w-5 h-5 text-gray-600"></i>
+                                ${state.notificacoes.some(n => !n.lida) ? '<span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full"></span>' : ''}
+                            </button>
+                        </div>
+                    </header>
+                    <div class="flex-1 overflow-x-hidden overflow-y-auto p-6 relative">
+                        ${getPageContent()}
+                    </div>
+                </main>
+            `;
+            container.innerHTML = sidebar + content;
         }
 
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        }
+        function setPage(page) { currentPage = page; renderApp(); }
 
-        // Slideshow História
-        const images = document.querySelectorAll('.slider-img');
-        let currentImg = 0;
-        function nextImage() {
-            if(images.length < 2) return;
-            images[currentImg].classList.replace('opacity-100', 'opacity-0');
-            currentImg = (currentImg + 1) % images.length;
-            images[currentImg].classList.replace('opacity-0', 'opacity-100');
-        }
-        if(images.length > 1) setInterval(nextImage, 4000);
-
-        // Carrossel Produtos
-        const productsCarousel = document.getElementById('products-carousel');
-        const productItems = document.querySelectorAll('.product-item');
-        let currentProd = 0;
-
-        function showProd(index) {
-            productItems[currentProd].classList.add('hidden');
-            currentProd = index;
-            productItems[currentProd].classList.remove('hidden');
-        }
-
-        document.getElementById('next-product').onclick = () => showProd((currentProd + 1) % productItems.length);
-        document.getElementById('prev-product').onclick = () => showProd((currentProd - 1 + productItems.length) % productItems.length);
-
-        // Video Player Simplificado
-        const video = document.getElementById('plumare-video');
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const progressFill = document.getElementById('progress-fill');
-        const videoControls = document.getElementById('video-controls');
-
-        playPauseBtn.onclick = () => {
-            if (video.paused) {
-                video.play();
-                document.getElementById('play-icon').classList.add('hidden');
-                document.getElementById('pause-icon').classList.remove('hidden');
-            } else {
-                video.pause();
-                document.getElementById('play-icon').classList.remove('hidden');
-                document.getElementById('pause-icon').classList.add('hidden');
+        function getPageContent() {
+            switch(currentPage) {
+                case 'kanban_obras': return renderObras();
+                case 'kanban_interno': return renderKanbanInterno();
+                case 'clientes': return renderClientes();
+                case 'financeiro': return renderFinanceiro();
+                case 'agenda': return renderAgenda();
+                default: return '';
             }
-        };
+        }
 
-        video.ontimeupdate = () => {
-            const progress = (video.currentTime / video.duration) * 100;
-            progressFill.style.width = progress + '%';
-            document.getElementById('current-time').textContent = Math.floor(video.currentTime/60) + ":" + Math.floor(video.currentTime%60).toString().padStart(2,'0');
-        };
+        // --- 4. KANBAN DE OBRAS (MCMV) ---
+        function renderObras() {
+            return `
+                <div class="flex flex-col h-full">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900">Acompanhamento de Obras</h3>
+                            <p class="text-sm text-gray-500">Fluxo Minha Casa Minha Vida - 22 Fases</p>
+                        </div>
+                        <button onclick="openObraModal()" class="apple-btn px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+                            <i data-lucide="home" class="w-4 h-4"></i> Iniciar Nova Obra
+                        </button>
+                    </div>
+                    
+                    <div class="flex-1 overflow-x-auto overflow-y-hidden pb-4">
+                        <div class="flex gap-4 h-full" style="width: max-content;">
+                            ${fasesObra.map(fase => {
+                                const obrasFase = state.obras.filter(o => o.fase === fase);
+                                return `
+                                <div class="w-72 flex-shrink-0 flex flex-col h-full rounded-xl bg-gray-100/60 border border-gray-200 p-2">
+                                    <div class="px-2 py-2 mb-2 flex justify-between items-center border-b border-gray-200/50">
+                                        <h4 class="font-semibold text-xs text-gray-600 uppercase tracking-wide truncate" title="${fase}">${fase}</h4>
+                                        <span class="bg-white text-gray-500 text-[10px] px-1.5 py-0.5 rounded shadow-sm">${obrasFase.length}</span>
+                                    </div>
+                                    <div class="flex-1 overflow-y-auto space-y-2 p-1 custom-scrollbar" ondrop="dropObra(event, '${fase}')" ondragover="allowDrop(event)">
+                                        ${obrasFase.map(obra => renderObraCard(obra)).join('')}
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
 
-        video.onloadedmetadata = () => {
-            document.getElementById('duration').textContent = Math.floor(video.duration/60) + ":" + Math.floor(video.duration%60).toString().padStart(2,'0');
-        };
+        function renderObraCard(obra) {
+            const cliente = state.clientes.find(c => c.id === obra.clienteId) || { nome: 'Desconhecido', fachada: null };
+            const isOverdue = new Date(obra.prazo) < new Date();
+            
+            return `
+                <div draggable="true" ondragstart="dragObra(event, ${obra.id})" 
+                    class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 cursor-move hover:shadow-md transition-all group ${isOverdue ? 'overdue-pulse' : ''}">
+                    ${cliente.fachada ? `<div class="h-24 w-full bg-gray-100 rounded-lg mb-2 bg-cover bg-center" style="background-image: url('https://source.unsplash.com/random/300x200/?house,construction')"></div>` : `<div class="h-24 w-full bg-gray-100 rounded-lg mb-2 flex items-center justify-center text-gray-400"><i data-lucide="home" class="w-8 h-8"></i></div>`}
+                    <h5 class="font-semibold text-gray-800 text-sm leading-tight mb-1">${cliente.nome}</h5>
+                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
+                        <div class="flex items-center gap-1 text-xs ${isOverdue ? 'text-red-600 font-bold' : 'text-gray-500'}">
+                            <i data-lucide="calendar" class="w-3 h-3"></i>
+                            ${obra.prazo.split('-').reverse().slice(0,2).join('/')}
+                        </div>
+                        ${isOverdue ? '<i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i>' : ''}
+                    </div>
+                </div>
+            `;
+        }
 
-        video.parentElement.onmouseenter = () => videoControls.style.opacity = '1';
-        video.parentElement.onmouseleave = () => { if(!video.paused) videoControls.style.opacity = '0'; };
+        // --- 5. KANBAN INTERNO (DEMANDAS EQUIPE) ---
+        
+        function renderKanbanInterno() {
+            const cols = [
+                { id: 'todo', title: 'A Fazer', color: 'bg-gray-100' },
+                { id: 'doing', title: 'Em Andamento', color: 'bg-blue-50' },
+                { id: 'blocked', title: 'Travado / Pendência', color: 'bg-red-50' },
+                { id: 'done', title: 'Concluído', color: 'bg-green-50' }
+            ];
+
+            return `
+                <div class="flex flex-col h-full">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900">Demandas Internas</h3>
+                            <p class="text-gray-500 text-sm">Quadro de tarefas administrativas e operacionais</p>
+                        </div>
+                        <button onclick="openTaskModal()" class="apple-btn px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Nova Tarefa
+                        </button>
+                    </div>
+
+                    <div class="flex gap-4 h-full overflow-x-auto pb-4">
+                        ${cols.map(col => `
+                            <div class="w-80 flex-shrink-0 flex flex-col h-full rounded-xl ${col.color} border border-gray-200 p-3">
+                                <div class="flex items-center justify-between mb-3 px-1">
+                                    <h4 class="font-bold text-gray-700 text-sm uppercase tracking-wide">${col.title}</h4>
+                                    <span class="bg-white/50 text-gray-600 text-xs px-2 py-1 rounded-md font-bold">${state.tasks.filter(t => t.status === col.id).length}</span>
+                                </div>
+                                <div class="flex-1 overflow-y-auto space-y-3 custom-scrollbar p-1" ondrop="dropTask(event, '${col.id}')" ondragover="allowDrop(event)">
+                                    ${state.tasks.filter(t => t.status === col.id).map(task => renderTaskCard(task)).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTaskCard(task) {
+            const isOverdue = new Date(task.prazo) < new Date() && task.status !== 'done';
+            const sectorColor = `sector-${task.setor.toLowerCase()}`;
+            
+            return `
+                <div draggable="true" ondragstart="dragTask(event, ${task.id})" onclick="openTaskModal(${task.id})"
+                    class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-all group relative ${isOverdue ? 'overdue-pulse' : ''}">
+                    
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] uppercase font-bold px-2 py-1 rounded-md ${sectorColor}">${task.setor}</span>
+                    </div>
+                    
+                    <h5 class="font-semibold text-gray-800 text-sm mb-1 leading-snug">${task.titulo}</h5>
+                    <p class="text-xs text-gray-500 mb-3 line-clamp-2">${task.desc}</p>
+                    
+                    <div class="pt-3 border-t border-gray-100 flex justify-between items-center">
+                        <div class="flex items-center gap-1.5 text-xs text-gray-500">
+                            <div class="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center font-bold text-[10px] text-gray-600" title="${task.responsavel}">
+                                ${task.responsavel.charAt(0)}
+                            </div>
+                            <span class="truncate w-16">${task.responsavel.split(' ')[0]}</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-xs ${isOverdue ? 'text-red-600 font-bold' : 'text-gray-400'}">
+                            <i data-lucide="clock" class="w-3 h-3"></i>
+                            ${task.prazo.split('-').reverse().slice(0,2).join('/')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 6. MÓDULO DE CLIENTES ---
+        function renderClientes() {
+            return `
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900">Base de Clientes</h3>
+                        <button onclick="openClienteModal()" class="apple-btn px-4 py-2 rounded-lg text-sm font-medium shadow-md shadow-green-500/20">
+                            + Novo Cliente
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${state.clientes.map(cli => `
+                            <div class="apple-card p-5 flex flex-col gap-4">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-16 h-16 rounded-full bg-gray-200 flex-shrink-0 bg-cover bg-center" 
+                                        style="background-image: url('https://ui-avatars.com/api/?name=${cli.nome}&background=random')"></div>
+                                    <div>
+                                        <h4 class="font-bold text-gray-900">${cli.nome}</h4>
+                                        <p class="text-xs text-gray-500 font-mono mt-1">CPF: ${cli.cpf}</p>
+                                        <p class="text-xs text-gray-500 truncate w-40">${cli.endereco}</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 mt-auto">
+                                    <button onclick="generatePDF(${cli.id})" class="flex-1 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-200 flex items-center justify-center gap-2">
+                                        <i data-lucide="printer" class="w-3 h-3"></i> Ficha PDF
+                                    </button>
+                                    <button onclick="editCliente(${cli.id})" class="px-3 py-2 bg-blue-50 text-blue-600 text-xs font-medium rounded-lg hover:bg-blue-100">
+                                        Editar
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 7. FINANCEIRO ---
+        function renderFinanceiro() {
+            const saldo = state.financas.saldo;
+            const receitas = state.financas.transacoes.filter(t => t.tipo === 'entrada').reduce((a,b) => a + b.valor, 0);
+            const despesas = state.financas.transacoes.filter(t => t.tipo === 'saida').reduce((a,b) => a + b.valor, 0);
+
+            return `
+                <div class="max-w-5xl mx-auto space-y-8 fade-in">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="apple-card p-6">
+                            <span class="text-sm text-gray-500 font-medium block mb-2">Saldo em Caixa</span>
+                            <span class="text-3xl font-bold text-gray-900">R$ ${saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                        </div>
+                        <div class="apple-card p-6 border-l-4 border-green-500">
+                            <span class="text-sm text-gray-500 font-medium block mb-2">Receitas (Mês)</span>
+                            <span class="text-2xl font-bold text-green-600">+ R$ ${receitas.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                        </div>
+                        <div class="apple-card p-6 border-l-4 border-red-500">
+                            <span class="text-sm text-gray-500 font-medium block mb-2">Despesas (Mês)</span>
+                            <span class="text-2xl font-bold text-red-600">- R$ ${despesas.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="font-semibold text-gray-800">Histórico de Transações</h3>
+                            <button onclick="openTransacaoModal()" class="text-sm text-green-600 font-bold hover:underline">+ Nova Transação</button>
+                        </div>
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50 text-gray-500">
+                                <tr>
+                                    <th class="px-6 py-3">Data</th>
+                                    <th class="px-6 py-3">Descrição</th>
+                                    <th class="px-6 py-3">Entidade</th>
+                                    <th class="px-6 py-3">Método</th>
+                                    <th class="px-6 py-3 text-right">Valor</th>
+                                    <th class="px-6 py-3 text-center">Tipo</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                ${state.financas.transacoes.map(t => `
+                                    <tr class="hover:bg-gray-50/50">
+                                        <td class="px-6 py-4 text-gray-500">${t.data.split('-').reverse().join('/')}</td>
+                                        <td class="px-6 py-4 font-medium text-gray-900">${t.desc}</td>
+                                        <td class="px-6 py-4 text-gray-600">${t.entidade}</td>
+                                        <td class="px-6 py-4 text-gray-500 text-xs uppercase">${t.metodo}</td>
+                                        <td class="px-6 py-4 text-right font-mono ${t.tipo === 'entrada' ? 'text-green-600' : 'text-red-600'}">
+                                            R$ ${t.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <span class="px-2 py-1 rounded text-[10px] font-bold uppercase ${t.tipo === 'entrada' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                                                ${t.tipo}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- AGENDA ---
+        function renderAgenda() {
+            return `
+                <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-sm">
+                    <h3 class="text-xl font-bold mb-4">Agenda Colaborativa</h3>
+                    <div class="space-y-4">
+                        ${state.agendaCEO.map(evt => `
+                            <div class="flex gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <div class="text-green-600 font-bold text-center w-12 text-sm leading-tight">${evt.data.split('-').reverse().slice(0,2).join('<br>')}</div>
+                                <div class="flex-1 font-medium text-gray-800">${evt.evento}</div>
+                            </div>
+                        `).join('') || '<p class="text-gray-400">Nenhum evento agendado.</p>'}
+                        <button onclick="promptAddEvent()" class="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 hover:border-green-400 hover:text-green-600 transition-colors">+ Adicionar Evento</button>
+                    </div>
+                </div>`;
+        }
+
+        // --- 8. MODAIS E LÓGICA DE SALVAMENTO ---
+
+        function openModal(html) {
+            const content = document.getElementById('modal-content');
+            const overlay = document.getElementById('modal-overlay');
+            content.innerHTML = `
+                <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+                ${html}
+            `;
+            overlay.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+
+        // Modal Tarefa Interna
+        function openTaskModal(taskId = null) {
+            const task = taskId ? state.tasks.find(t => t.id === taskId) : null;
+            openModal(`
+                <h2 class="text-xl font-bold mb-6">${task ? 'Editar' : 'Nova'} Tarefa</h2>
+                <form onsubmit="saveTask(event, ${taskId})" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Título</label>
+                        <input type="text" name="titulo" value="${task?.titulo || ''}" required class="w-full p-2 border rounded-lg">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Setor</label>
+                            <select name="setor" class="w-full p-2 border rounded-lg bg-white">
+                                ${setores.map(s => `<option ${task?.setor === s ? 'selected' : ''} value="${s}">${s}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Responsável</label>
+                            <select name="responsavel" class="w-full p-2 border rounded-lg bg-white">
+                                ${usuarios.map(u => `<option ${task?.responsavel === u.nome ? 'selected' : ''} value="${u.nome}">${u.nome}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Prazo</label>
+                        <input type="date" name="prazo" value="${task?.prazo || ''}" required class="w-full p-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Descrição</label>
+                        <textarea name="desc" class="w-full p-2 border rounded-lg" rows="3">${task?.desc || ''}</textarea>
+                    </div>
+                    <button type="submit" class="w-full apple-btn py-3 rounded-xl font-bold mt-4">Salvar Tarefa</button>
+                    ${task ? `<button type="button" onclick="deleteTask(${taskId})" class="w-full text-red-500 text-sm mt-2 hover:underline">Excluir Tarefa</button>` : ''}
+                </form>
+            `);
+        }
+
+        function saveTask(e, id) {
+            e.preventDefault();
+            const f = e.target;
+            const data = {
+                titulo: f.titulo.value,
+                setor: f.setor.value,
+                responsavel: f.responsavel.value,
+                prazo: f.prazo.value,
+                desc: f.desc.value
+            };
+
+            if(id) {
+                const idx = state.tasks.findIndex(t => t.id === id);
+                state.tasks[idx] = { ...state.tasks[idx], ...data };
+            } else {
+                state.tasks.push({
+                    id: Date.now(),
+                    status: 'todo',
+                    ...data
+                });
+            }
+            saveState();
+            closeModal();
+        }
+
+        function deleteTask(id) {
+            if(confirm("Tem certeza que deseja excluir esta tarefa?")) {
+                state.tasks = state.tasks.filter(t => t.id !== id);
+                saveState();
+                closeModal();
+            }
+        }
+
+        // Modal Transação (Financeiro)
+        function openTransacaoModal() {
+            openModal(`
+                <h2 class="text-xl font-bold mb-6">Nova Movimentação</h2>
+                <form onsubmit="saveTransacao(event)" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo</label>
+                            <select name="tipo" class="w-full p-2 border rounded-lg bg-gray-50">
+                                <option value="saida">Pagamento (Despesa)</option>
+                                <option value="entrada">Recebimento (Receita)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Data</label>
+                            <input type="date" name="data" required class="w-full p-2 border rounded-lg">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Descrição</label>
+                        <input type="text" name="desc" placeholder="Ex: Pagamento Fornecedor X" required class="w-full p-2 border rounded-lg">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Valor (R$)</label>
+                            <input type="number" step="0.01" name="valor" required class="w-full p-2 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Método</label>
+                            <select name="metodo" class="w-full p-2 border rounded-lg bg-gray-50">
+                                <option>Boleto</option>
+                                <option>Pix</option>
+                                <option>Transferência</option>
+                                <option>Dinheiro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Quem Pagou/Recebeu</label>
+                        <input type="text" name="entidade" placeholder="Nome do Cliente ou Fornecedor" required class="w-full p-2 border rounded-lg">
+                    </div>
+                    <button type="submit" class="w-full apple-btn py-3 rounded-xl font-bold mt-4">Confirmar Transação</button>
+                </form>
+            `);
+        }
+
+        function saveTransacao(e) {
+            e.preventDefault();
+            const f = e.target;
+            const val = parseFloat(f.valor.value);
+            const tipo = f.tipo.value;
+            
+            state.financas.transacoes.push({
+                id: Date.now(),
+                tipo,
+                data: f.data.value,
+                desc: f.desc.value,
+                valor: val,
+                metodo: f.metodo.value,
+                entidade: f.entidade.value,
+                status: 'efetivado'
+            });
+
+            if(tipo === 'entrada') state.financas.saldo += val;
+            else state.financas.saldo -= val;
+
+            saveState();
+            closeModal();
+        }
+
+        // Modal Cliente
+        function openClienteModal(clienteId = null) {
+            const cli = clienteId ? state.clientes.find(c => c.id === clienteId) : null;
+            openModal(`
+                <h2 class="text-xl font-bold mb-6">${cli ? 'Editar' : 'Novo'} Cliente</h2>
+                <form onsubmit="saveCliente(event, ${clienteId})" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome Completo</label>
+                        <input type="text" name="nome" value="${cli?.nome || ''}" required class="w-full p-2 border rounded-lg">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">CPF</label>
+                            <input type="text" name="cpf" value="${cli?.cpf || ''}" class="w-full p-2 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nascimento</label>
+                            <input type="date" name="nasc" value="${cli?.nasc || ''}" class="w-full p-2 border rounded-lg">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Endereço</label>
+                        <input type="text" name="endereco" value="${cli?.endereco || ''}" class="w-full p-2 border rounded-lg">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 pt-2">
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-green-500">
+                            <i data-lucide="image" class="w-6 h-6 mx-auto text-gray-400"></i>
+                            <span class="text-xs text-gray-500 block mt-1">Foto Documento</span>
+                        </div>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-green-500">
+                            <i data-lucide="home" class="w-6 h-6 mx-auto text-gray-400"></i>
+                            <span class="text-xs text-gray-500 block mt-1">Fachada Casa</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full apple-btn py-3 rounded-xl font-bold mt-4">Salvar Dados</button>
+                </form>
+            `);
+        }
+
+        function saveCliente(e, id) {
+            e.preventDefault();
+            const f = e.target;
+            const dados = {
+                nome: f.nome.value,
+                cpf: f.cpf.value,
+                nasc: f.nasc.value,
+                endereco: f.endereco.value,
+                fotoDoc: 'doc_simulado.jpg', // Simulado
+                fachada: 'fachada_simulada.jpg' // Simulado
+            };
+
+            if(id) {
+                const idx = state.clientes.findIndex(c => c.id === id);
+                state.clientes[idx] = { ...state.clientes[idx], ...dados };
+            } else {
+                state.clientes.push({ id: Date.now(), ...dados });
+            }
+            saveState();
+            closeModal();
+        }
+
+        // Modal Nova Obra
+        function openObraModal() {
+            if(state.clientes.length === 0) return alert("Cadastre clientes primeiro!");
+            openModal(`
+                <h2 class="text-xl font-bold mb-6">Iniciar Nova Obra MCMV</h2>
+                <form onsubmit="saveObra(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Cliente</label>
+                        <select name="clienteId" class="w-full p-3 border rounded-lg bg-white">
+                            ${state.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Prazo Fase 1</label>
+                        <input type="date" name="prazo" required class="w-full p-3 border rounded-lg">
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg text-sm text-blue-800">
+                        A obra iniciará na fase: <strong>1. Simulação Crédito</strong>. Os dados do cliente serão vinculados automaticamente.
+                    </div>
+                    <button type="submit" class="w-full apple-btn py-3 rounded-xl font-bold mt-4">Criar Card de Obra</button>
+                </form>
+            `);
+        }
+
+        function saveObra(e) {
+            e.preventDefault();
+            state.obras.push({
+                id: Date.now(),
+                clienteId: parseInt(e.target.clienteId.value),
+                fase: fasesObra[0],
+                prazo: e.target.prazo.value
+            });
+            saveState();
+            closeModal();
+        }
+
+        // --- 9. PDF GENERATOR ---
+        function generatePDF(clienteId) {
+            const cli = state.clientes.find(c => c.id === clienteId);
+            const printArea = document.getElementById('print-area');
+            
+            printArea.innerHTML = `
+                <div style="font-family: Arial, sans-serif; max-width: 210mm; margin: 0 auto;">
+                    <div style="border-bottom: 2px solid #333; padding-bottom: 20px; mb-6 display: flex; justify-content: space-between; align-items: center;">
+                        <h1 style="font-size: 24px; color: #1d8f2d;">Ficha Cadastral do Cliente</h1>
+                        <span>Virtus Construct System</span>
+                    </div>
+                    <div style="display: flex; gap: 20px; margin-top: 30px;">
+                        <div style="width: 150px; height: 150px; background: #eee; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center;">Foto Cliente</div>
+                        <div style="flex: 1;">
+                            <p><strong>Nome Completo:</strong> ${cli.nome}</p>
+                            <p><strong>CPF:</strong> ${cli.cpf}</p>
+                            <p><strong>Data Nasc:</strong> ${cli.nasc.split('-').reverse().join('/')}</p>
+                            <p><strong>Endereço Obra:</strong> ${cli.endereco}</p>
+                        </div>
+                    </div>
+                    <h2 style="margin-top: 40px; border-bottom: 1px solid #ccc; font-size: 18px;">Fachada Escolhida</h2>
+                    <div style="margin-top: 20px; height: 300px; background: #f9f9f9; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center;">Imagem da Fachada</div>
+                    <div style="margin-top: 50px; text-align: center; font-size: 12px; color: #666;">Gerado via Sistema Virtus em ${new Date().toLocaleDateString()}</div>
+                </div>
+            `;
+            window.print();
+            setTimeout(() => { printArea.innerHTML = ''; }, 1000);
+        }
+
+        // --- 10. DRAG AND DROP LÓGICA ---
+        function allowDrop(ev) { ev.preventDefault(); }
+        
+        // Drag Obras
+        function dragObra(ev, id) { ev.dataTransfer.setData("type", "obra"); ev.dataTransfer.setData("id", id); }
+        function dropObra(ev, faseDestino) {
+            ev.preventDefault();
+            if(ev.dataTransfer.getData("type") !== "obra") return;
+            const id = parseInt(ev.dataTransfer.getData("id"));
+            const idx = state.obras.findIndex(o => o.id === id);
+            if (idx > -1) { state.obras[idx].fase = faseDestino; saveState(); }
+        }
+
+        // Drag Tasks (Interno)
+        function dragTask(ev, id) { ev.dataTransfer.setData("type", "task"); ev.dataTransfer.setData("id", id); }
+        function dropTask(ev, statusDestino) {
+            ev.preventDefault();
+            if(ev.dataTransfer.getData("type") !== "task") return;
+            const id = parseInt(ev.dataTransfer.getData("id"));
+            const idx = state.tasks.findIndex(t => t.id === id);
+            if (idx > -1) { state.tasks[idx].status = statusDestino; saveState(); }
+        }
+
+        function promptAddEvent() {
+            const txt = prompt("Evento:");
+            if(txt) {
+                state.agendaCEO.push({ id: Date.now(), data: new Date().toISOString().split('T')[0], evento: txt });
+                saveState();
+            }
+        }
+
+        init();
     </script>
 </body>
 </html>
