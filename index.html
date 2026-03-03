@@ -1,1135 +1,1066 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  LayoutDashboard, 
-  KanbanSquare, 
-  Wallet, 
-  CalendarDays, 
-  UserPlus, 
-  Bell, 
-  Search, 
-  ChevronRight, 
-  CheckCircle2, 
-  Circle, 
-  Clock, 
-  MoreVertical,
-  Paperclip,
-  MessageSquare,
-  FileText,
-  AlertCircle,
-  Lock,
-  Mail,
-  ArrowRight,
-  User,
-  Plus,
-  Users,
-  CalendarPlus,
-  Filter
-} from 'lucide-react';
-
-// --- DADOS SIMULADOS (MOCK DATA) ---
-
-const PHASES = [
-  "Doc pessoais", "Análise de crédito", "Entrevista com gerente", "Contratos Virtus",
-  "Alteração CAD. Imob", "Projetos e RRT", "Alvará de construção", "Taxa de engenharia",
-  "Avaliação da engenharia", "Assinatura do contrato de financiamento", "Guias de ITBI",
-  "ITBI", "Registro do contrato", "Liberação de Terreno", "Liberação de custas cartorárias",
-  "CNO", "SCPO", "Medição 30%", "Aferição", "Medição de 60%", "Habite-se",
-  "CND RFB", "Averbação", "Medição 100%", "Liberação de 5%"
-];
-
-const ROLES = ['CEO', 'Financeiro', 'Arquiteto', 'Marketing', 'Atendente', 'Cliente'];
-
-const TEAM_USERS = ['Ana (Arquiteta)', 'Carlos (Financeiro)', 'Mariana (Marketing)', 'João (CEO)', 'Pedro (Atendente)'];
-
-const INITIAL_TASKS = [
-  { id: 't1', title: 'Aprovar projeto elétrico', column: 'todo', role: 'Arquiteto', days: 2, clientId: 1, assignees: ['Ana (Arquiteta)'], comments: [{ author: 'CEO', text: 'Prioridade alta neste projeto.', date: 'Hoje, 09:00' }] },
-  { id: 't2', title: 'Pagamento fornecedor Cimento', column: 'in_progress', role: 'Financeiro', days: 5, clientId: 'internal', assignees: ['Carlos (Financeiro)'], comments: [] },
-  { id: 't3', title: 'Campanha Instagram Mês 05', column: 'review', role: 'Marketing', days: 12, clientId: 'internal', assignees: [], comments: [] },
-  { id: 't4', title: 'Assinatura Contrato', column: 'done', role: 'Atendente', days: 1, clientId: 1, assignees: ['Pedro (Atendente)'], comments: [] },
-];
-
-const MOCK_CLIENTS = [
-  { id: 1, nome: 'João da Silva', telefone: '(11) 99999-9999', endereco: 'Rua das Flores, 123', phaseIndex: 8, comments: ['Fundações concluídas com sucesso.'] }
-];
-
-const INITIAL_FINANCE = [
-  { id: 1, desc: 'Sinal - João da Silva', tipo: 'Entrada', valor: 45000, imposto: 2700, vencimento: '2026-02-10', status: 'Pago' },
-  { id: 2, desc: 'Concreto Usinado', tipo: 'Saída', valor: 12300, imposto: 0, vencimento: '2026-02-20', status: 'Em Atraso' },
-  { id: 3, desc: 'Folha de Pagamento - Equipe 1', tipo: 'Funcionário', valor: 8000, imposto: 0, vencimento: '2026-02-28', status: 'Pendente' },
-];
-
-// --- COMPONENTES PRINCIPAIS ---
-
-export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentRole, setCurrentRole] = useState('CEO');
-  const [currentView, setCurrentView] = useState('dashboard');
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-
-  // Estados globais
-  const [clients, setClients] = useState(MOCK_CLIENTS);
-  const [financeEntries, setFinanceEntries] = useState(INITIAL_FINANCE);
-
-  // Controle de rotas baseadas no perfil
-  const getNavItems = () => {
-    const items = [];
-    if (currentRole !== 'Cliente') {
-      items.push({ id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' });
-      items.push({ id: 'kanban', icon: KanbanSquare, label: 'Kanban Demandas' });
-      items.push({ id: 'obras', icon: LayoutDashboard, label: 'Acompanhamento de Obras' });
-    }
-    if (currentRole === 'CEO' || currentRole === 'Financeiro') {
-      items.push({ id: 'finance', icon: Wallet, label: 'Financeiro' });
-    }
-    if (currentRole === 'CEO') {
-      items.push({ id: 'agenda', icon: CalendarDays, label: 'Agenda & Notas' });
-    }
-    if (currentRole === 'Atendente' || currentRole === 'CEO') {
-      items.push({ id: 'new_client', icon: UserPlus, label: 'Cadastro Cliente' });
-    }
-    if (currentRole === 'Cliente' || currentRole === 'CEO') {
-      items.push({ id: 'portal', icon: FileText, label: 'Portal do Cliente' });
-    }
-    return items;
-  };
-
-  const navItems = getNavItems();
-
-  React.useEffect(() => {
-    if (isAuthenticated && !navItems.find(i => i.id === currentView)) {
-      setCurrentView(navItems[0]?.id || 'dashboard');
-    }
-  }, [currentRole, isAuthenticated]);
-
-  if (!isAuthenticated) {
-    return <LoginView onLogin={(role) => { setCurrentRole(role); setIsAuthenticated(true); }} />;
-  }
-
-  return (
-    <div className="min-h-screen bg-[#F5F5F7] font-sans text-slate-800 flex overflow-hidden">
-      
-      {/* SIDEBAR */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-        <div className="h-20 flex items-center px-8 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-bold text-xl shadow-sm shadow-emerald-200">
-              V
-            </div>
-            <span className="text-xl font-semibold tracking-tight text-slate-900">Virtus</span>
-          </div>
-        </div>
-
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentView === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setCurrentView(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${
-                  isActive 
-                    ? 'bg-emerald-50 text-emerald-700 shadow-sm' 
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                }`}
-              >
-                <Icon size={18} className={isActive ? 'text-emerald-600' : 'text-slate-400'} />
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-slate-100">
-          <button 
-            onClick={() => setIsAuthenticated(false)}
-            className="w-full text-sm font-medium text-slate-500 hover:text-red-600 text-left px-4 py-2 transition-colors"
-          >
-            Sair do Sistema
-          </button>
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-2">
-            <p className="text-xs text-slate-500 mb-2 font-medium">Trocar Perfil (Dev):</p>
-            <select 
-              value={currentRole}
-              onChange={(e) => setCurrentRole(e.target.value)}
-              className="w-full bg-white border border-slate-200 text-xs rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all cursor-pointer shadow-sm"
-            >
-              {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
-          </div>
-        </div>
-      </aside>
-
-      {/* MAIN CONTENT */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        
-        {/* HEADER */}
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/50 flex items-center justify-between px-8 z-10">
-          <div className="flex items-center bg-slate-100/80 rounded-full px-4 py-2 w-96 border border-slate-200/50 focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:bg-white transition-all">
-            <Search size={16} className="text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Buscar obras, clientes ou demandas..." 
-              className="bg-transparent border-none outline-none ml-2 text-sm w-full placeholder:text-slate-400"
-            />
-          </div>
-
-          <div className="flex items-center gap-6">
-            <div className="relative">
-              <button 
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative p-2 text-slate-400 hover:text-slate-600 transition-colors rounded-full hover:bg-slate-50"
-              >
-                <Bell size={20} />
-                {/* Notificação mockada para demonstração */}
-                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-              </button>
-              
-              {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 p-4 py-2 z-50 animate-in slide-in-from-top-2">
-                  <h4 className="font-semibold text-sm px-2 py-2 border-b border-slate-50 mb-2">Notificações</h4>
-                  <div className="space-y-1">
-                    <div className="p-2 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer text-sm">
-                      <p className="text-slate-800"><span className="font-semibold text-emerald-600">@sistema</span> Nova demanda atribuída ao seu perfil.</p>
-                      <span className="text-xs text-slate-400 mt-1 flex items-center gap-1"><Clock size={12}/> 2 min atrás</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-slate-900">Usuário Ativo</p>
-                <p className="text-xs text-emerald-600 font-medium">{currentRole}</p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm overflow-hidden">
-                <img src={`https://ui-avatars.com/api/?name=${currentRole}&background=10b981&color=fff`} alt="Avatar" />
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* CONTENT AREA */}
-        <div className="flex-1 overflow-auto p-8 relative">
-          {currentView === 'dashboard' && <DashboardView />}
-          {currentView === 'kanban' && <KanbanView currentRole={currentRole} clients={clients} />}
-          {currentView === 'finance' && <FinanceView financeEntries={financeEntries} setFinanceEntries={setFinanceEntries} />}
-          {currentView === 'new_client' && <ClientFormView clients={clients} setClients={setClients} />}
-          {currentView === 'portal' && <ClientPortalView clients={clients} />}
-          {currentView === 'agenda' && <AgendaView />}
-          {currentView === 'obras' && <ObrasView clients={clients} setClients={setClients} />}
-        </div>
-      </main>
-    </div>
-  );
-}
-
-// --- VIEWS ---
-
-function LoginView({ onLogin }) {
-  const [role, setRole] = useState('CEO');
-
-  return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute -top-40 -right-40 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl"></div>
-      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl"></div>
-      
-      <div className="w-full max-w-md bg-white/80 backdrop-blur-xl border border-slate-100 rounded-3xl shadow-2xl p-8 relative z-10 animate-in zoom-in-95 duration-500">
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500 flex items-center justify-center text-white font-bold text-3xl shadow-lg shadow-emerald-500/30 mx-auto mb-4">
-            V
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Virtus</h1>
-          <p className="text-slate-500 text-sm mt-1">Sistema Integrado de Gestão de Obras</p>
-        </div>
-
-        <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); onLogin(role); }}>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">E-mail corporativo</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input type="email" defaultValue="usuario@virtus.com.br" className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" required />
-            </div>
-          </div>
-          
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Senha</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input type="password" defaultValue="******" className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" required />
-            </div>
-          </div>
-
-          <div className="space-y-1 pt-2">
-            <label className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Simular Acesso Como:</label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500" size={18} />
-              <select 
-                value={role} 
-                onChange={e => setRole(e.target.value)}
-                className="w-full bg-emerald-50/50 border border-emerald-200 text-emerald-900 font-medium rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all cursor-pointer"
-              >
-                {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
-            </div>
-          </div>
-
-          <button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl py-3.5 text-sm font-semibold shadow-lg transition-all flex items-center justify-center gap-2 mt-6 group">
-            Entrar no Sistema <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function DashboardView() {
-  return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Visão Geral</h1>
-          <p className="text-slate-500 text-sm mt-1">Bem-vindo ao sistema de gestão Virtus.</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {[
-          { title: 'Obras em Andamento', value: '12', trend: '+2 esse mês', color: 'bg-emerald-500' },
-          { title: 'Demandas Pendentes', value: '34', trend: '5 em atraso', color: 'bg-amber-500' },
-          { title: 'Faturamento Estimado', value: 'R$ 450k', trend: 'Alinhado com a meta', color: 'bg-blue-500' },
-          { title: 'Tempo Médio Entrega', value: '4.2 Dias', trend: 'SLA dentro da meta', color: 'bg-indigo-500' }
-        ].map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-40 relative overflow-hidden group">
-            <div className="relative z-10">
-              <p className="text-sm font-medium text-slate-500">{stat.title}</p>
-              <h3 className="text-3xl font-bold mt-2 text-slate-900">{stat.value}</h3>
-            </div>
-            <p className="text-xs text-slate-400 relative z-10">{stat.trend}</p>
-            <div className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full opacity-10 group-hover:scale-125 transition-transform duration-500 ${stat.color}`}></div>
-          </div>
-        ))}
-      </div>
-
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-96 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100">
-            <LayoutDashboard className="text-slate-300" size={24} />
-          </div>
-          <p className="text-slate-500 font-medium">Gráficos de Desempenho em breve</p>
-          <p className="text-sm text-slate-400 mt-1">A área de BI está sendo conectada ao banco de dados.</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function KanbanView({ currentRole, clients }) {
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
-  const [draggedTaskId, setDraggedTaskId] = useState(null);
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [newComment, setNewComment] = useState('');
-  
-  // States para nova demanda
-  const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
-  const [newTask, setNewTask] = useState({ title: '', role: 'Arquiteto', days: 1, clientId: 'internal', assignees: [] });
-
-  const columns = [
-    { id: 'todo', title: 'A Fazer' },
-    { id: 'in_progress', title: 'Em Andamento' },
-    { id: 'review', title: 'Validação' },
-    { id: 'done', title: 'Concluído' }
-  ];
-
-  const handleDragStart = (e, id) => {
-    setDraggedTaskId(id);
-    e.dataTransfer.effectAllowed = "move";
-    setTimeout(() => { e.target.style.opacity = "0.5"; }, 0);
-  };
-
-  const handleDragEnd = (e) => {
-    e.target.style.opacity = "1";
-    setDraggedTaskId(null);
-  };
-
-  const handleDragOver = (e) => { e.preventDefault(); };
-
-  const handleDrop = (e, columnId) => {
-    e.preventDefault();
-    if (draggedTaskId) setTasks(tasks.map(t => t.id === draggedTaskId ? { ...t, column: columnId } : t));
-  };
-
-  const updateTask = (updatedTask) => {
-    setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t));
-    setSelectedTask(updatedTask);
-  };
-
-  const handleCreateTask = (e) => {
-    e.preventDefault();
-    const taskToSave = { ...newTask, id: Date.now().toString(), column: 'todo', comments: [] };
-    setTasks([...tasks, taskToSave]);
-    setIsNewTaskModalOpen(false);
-    setNewTask({ title: '', role: 'Arquiteto', days: 1, clientId: 'internal', assignees: [] });
-  };
-
-  const addComment = (e) => {
-    e.preventDefault();
-    if(!newComment) return;
-    const commentObj = { author: currentRole, text: newComment, date: new Date().toLocaleString('pt-BR', { hour: '2-digit', minute:'2-digit', day:'2-digit', month:'2-digit' }) };
-    const updatedTask = { ...selectedTask, comments: [...(selectedTask.comments || []), commentObj] };
-    updateTask(updatedTask);
-    setNewComment('');
-  };
-
-  return (
-    <div className="h-full flex flex-col space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Kanban de Demandas</h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Demandas do seu setor (<strong className="text-emerald-600">{currentRole}</strong>) estão destacadas.
-          </p>
-        </div>
-        <button 
-          onClick={() => setIsNewTaskModalOpen(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm flex items-center gap-2"
-        >
-          <Plus size={16}/> Nova Demanda
-        </button>
-      </div>
-
-      <div className="flex-1 flex gap-6 overflow-x-auto pb-4">
-        {columns.map(col => (
-          <div key={col.id} className="flex-shrink-0 w-80 bg-slate-100/50 rounded-2xl p-4 flex flex-col border border-slate-200/50" onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, col.id)}>
-            <div className="flex items-center justify-between mb-4 px-1">
-              <h3 className="font-semibold text-slate-700 text-sm">{col.title}</h3>
-              <span className="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full font-medium">{tasks.filter(t => t.column === col.id).length}</span>
-            </div>
-
-            <div className="flex-1 flex flex-col gap-3 overflow-y-auto min-h-[150px] pr-1">
-              {tasks.filter(t => t.column === col.id).map(task => {
-                const isMine = task.role === currentRole || task.assignees?.some(a => a.includes(currentRole));
-                return (
-                  <div 
-                    key={task.id} draggable onDragStart={(e) => handleDragStart(e, task.id)} onDragEnd={handleDragEnd} onClick={() => setSelectedTask(task)}
-                    className={`p-4 rounded-xl shadow-sm cursor-grab active:cursor-grabbing transition-all group relative border
-                      ${isMine ? 'bg-emerald-50/80 border-emerald-300 ring-2 ring-emerald-500/20 hover:shadow-md hover:border-emerald-400' : 'bg-white border-slate-100 hover:shadow-md hover:border-slate-300'}`}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md ${isMine ? 'bg-emerald-200 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>
-                        {task.role}
-                      </span>
-                      {task.clientId !== 'internal' && task.clientId && (
-                        <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded-md border border-blue-100 font-medium truncate max-w-[100px]">
-                          {clients.find(c => c.id === task.clientId)?.nome || 'Cliente'}
-                        </span>
-                      )}
-                    </div>
-                    <p className={`text-sm font-medium leading-snug mb-3 ${isMine ? 'text-emerald-950' : 'text-slate-800'}`}>{task.title}</p>
-                    
-                    {task.assignees && task.assignees.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {task.assignees.map((a, i) => (
-                          <span key={i} className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 flex items-center gap-1"><User size={10}/> {a.split(' ')[0]}</span>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between text-xs mt-auto pt-3 border-t border-black/5">
-                      <div className={`flex items-center gap-3 ${isMine ? 'text-emerald-700' : 'text-slate-400'}`}>
-                        <span className="flex items-center gap-1"><MessageSquare size={12}/> {task.comments?.length || 0}</span>
-                      </div>
-                      <span className={`flex items-center gap-1 px-2 py-1 rounded-md ${isMine ? 'bg-emerald-200/50 text-emerald-800' : 'bg-slate-50 text-slate-500'}`}>
-                        <Clock size={10} /> {task.days}d SLA
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Modal Nova Demanda */}
-      {isNewTaskModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <form onSubmit={handleCreateTask} className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95">
-            <h3 className="text-xl font-bold mb-6 text-slate-800">Criar Nova Demanda</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">Título da Demanda</label>
-                <input type="text" required value={newTask.title} onChange={e => setNewTask({...newTask, title: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" placeholder="O que precisa ser feito?" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-slate-700 block mb-1">Setor Responsável</label>
-                  <select value={newTask.role} onChange={e => setNewTask({...newTask, role: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500">
-                    {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-slate-700 block mb-1">Prazo SLA (Dias)</label>
-                  <input type="number" min="1" required value={newTask.days} onChange={e => setNewTask({...newTask, days: Number(e.target.value)})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" />
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">Atribuir Pessoa (Opcional)</label>
-                <select 
-                  onChange={e => {
-                    const val = e.target.value;
-                    if(val && !newTask.assignees.includes(val)) setNewTask({...newTask, assignees: [...newTask.assignees, val]});
-                  }} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500 mb-2"
-                >
-                  <option value="">Selecione para adicionar...</option>
-                  {TEAM_USERS.map(u => <option key={u} value={u}>{u}</option>)}
-                </select>
-                <div className="flex flex-wrap gap-2">
-                  {newTask.assignees.map((a, i) => (
-                    <span key={i} className="text-xs bg-emerald-100 text-emerald-800 px-2 py-1 rounded-md flex items-center gap-1">
-                      {a} <button type="button" onClick={() => setNewTask({...newTask, assignees: newTask.assignees.filter(user => user !== a)})} className="hover:text-red-500 font-bold ml-1">×</button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="mt-8 flex gap-3 justify-end">
-              <button type="button" onClick={() => setIsNewTaskModalOpen(false)} className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl text-sm font-medium transition-colors">Cancelar</button>
-              <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm">Criar Card</button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Modal Detalhes da Tarefa Existente */}
-      {selectedTask && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-start bg-slate-50/50">
-              <div>
-                <div className="flex gap-2 mb-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-1 rounded-md">
-                    Setor: {selectedTask.role}
-                  </span>
-                </div>
-                <h2 className="text-2xl font-bold text-slate-900">{selectedTask.title}</h2>
-              </div>
-              <button onClick={() => setSelectedTask(null)} className="p-2 hover:bg-slate-200 rounded-full text-slate-500 transition-colors">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-            </div>
-
-            <div className="p-6 flex-1 overflow-y-auto space-y-6">
-              
-              <div className="grid grid-cols-2 gap-6">
-                {/* SLA / Tempo de Entrega */}
-                <div>
-                  <label className="text-sm font-semibold text-slate-700 block mb-2 flex items-center gap-1"><Clock size={14}/> Prazo de Entrega (SLA)</label>
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="number" min="1"
-                      value={selectedTask.days}
-                      onChange={(e) => updateTask({...selectedTask, days: Number(e.target.value)})}
-                      className="w-24 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-emerald-500 text-center font-bold"
-                    />
-                    <span className="text-sm text-slate-500">Dias para conclusão</span>
-                  </div>
-                </div>
-
-                {/* Cliente Vinculado */}
-                <div>
-                  <label className="text-sm font-semibold text-slate-700 block mb-2">Obra / Cliente Vinculado</label>
-                  <select 
-                    value={selectedTask.clientId || 'internal'}
-                    onChange={(e) => updateTask({...selectedTask, clientId: e.target.value === 'internal' ? 'internal' : Number(e.target.value)})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500 transition-colors"
-                  >
-                    <option value="internal">🏢 Demanda Interna</option>
-                    <optgroup label="Clientes Cadastrados">
-                      {clients.map(c => <option key={c.id} value={c.id}>👤 {c.nome}</option>)}
-                    </optgroup>
-                  </select>
-                </div>
-              </div>
-
-              {/* Responsáveis / Pessoas anexadas */}
-              <div>
-                <label className="text-sm font-semibold text-slate-700 block mb-2 flex items-center gap-1"><Users size={14}/> Pessoas Responsáveis no Card</label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {selectedTask.assignees?.map((a, i) => (
-                    <span key={i} className="text-xs bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-lg flex items-center gap-2 font-medium">
-                      <User size={12}/> {a} 
-                      <button onClick={() => updateTask({...selectedTask, assignees: selectedTask.assignees.filter(user => user !== a)})} className="hover:text-red-500 ml-1">×</button>
-                    </span>
-                  ))}
-                </div>
-                <select 
-                  onChange={e => {
-                    const val = e.target.value;
-                    if(val && !(selectedTask.assignees || []).includes(val)) {
-                      updateTask({...selectedTask, assignees: [...(selectedTask.assignees || []), val]});
-                    }
-                  }} 
-                  className="w-full max-w-xs bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-emerald-500"
-                >
-                  <option value="">+ Anexar pessoa ao card...</option>
-                  {TEAM_USERS.map(u => <option key={u} value={u}>{u}</option>)}
-                </select>
-              </div>
-
-              {/* Chat / Comentários */}
-              <div className="pt-4 border-t border-slate-100">
-                <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
-                  <MessageSquare size={16}/> Comentários da Demanda
-                </h3>
-                <div className="space-y-4 mb-4 max-h-60 overflow-y-auto pr-2">
-                  {(!selectedTask.comments || selectedTask.comments.length === 0) ? (
-                    <p className="text-sm text-slate-400 italic text-center py-4">Nenhum comentário ainda.</p>
-                  ) : (
-                    selectedTask.comments.map((c, i) => (
-                      <div key={i} className={`flex flex-col ${c.author === currentRole ? 'items-end' : 'items-start'}`}>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-semibold text-slate-600">{c.author}</span>
-                          <span className="text-[10px] text-slate-400">{c.date}</span>
-                        </div>
-                        <div className={`px-4 py-2 rounded-2xl max-w-[85%] text-sm ${c.author === currentRole ? 'bg-emerald-600 text-white rounded-tr-sm' : 'bg-slate-100 text-slate-800 rounded-tl-sm'}`}>
-                          {c.text}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-                <form onSubmit={addComment} className="flex gap-2">
-                  <input type="text" value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Escreva um comentário..." className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500 transition-colors" />
-                  <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">Enviar</button>
-                </form>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function FinanceView({ financeEntries, setFinanceEntries }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newEntry, setNewEntry] = useState({ desc: '', tipo: 'Entrada', valor: '', imposto: '', vencimento: '', status: 'Pendente' });
-  const [filterType, setFilterType] = useState('Todos');
-
-  const totais = useMemo(() => {
-    let entradas = 0;
-    let saidas = 0;
-    financeEntries.forEach(entry => {
-      if (entry.tipo === 'Entrada') {
-        entradas += Number(entry.valor) - (Number(entry.imposto) || 0);
-      } else {
-        saidas += Number(entry.valor);
-      }
-    });
-    return { saldo: 245000 + entradas - saidas, entradas, saidas };
-  }, [financeEntries]);
-
-  const formatCurrency = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-
-  const handleAddEntry = (e) => {
-    e.preventDefault();
-    const entryToSave = { 
-      ...newEntry, id: Date.now(), valor: Number(newEntry.valor), imposto: newEntry.tipo === 'Entrada' ? Number(newEntry.imposto || 0) : 0
-    };
-    setFinanceEntries([...financeEntries, entryToSave]);
-    setIsModalOpen(false);
-    setNewEntry({ desc: '', tipo: 'Entrada', valor: '', imposto: '', vencimento: '', status: 'Pendente' });
-  };
-
-  const filteredEntries = financeEntries.filter(entry => {
-    if(filterType === 'Todos') return true;
-    return entry.tipo === filterType;
-  });
-
-  return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Módulo Financeiro</h1>
-          <p className="text-slate-500 text-sm mt-1">Gestão de fluxo de caixa, pagamentos e impostos.</p>
-        </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm flex items-center gap-2"
-        >
-          <Plus size={16}/> Novo Lançamento
-        </button>
-      </div>
-
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <form onSubmit={handleAddEntry} className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95">
-            <h3 className="text-xl font-bold mb-6 text-slate-800">Registrar Movimentação</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">Tipo de Lançamento</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {['Entrada', 'Saída', 'Funcionário'].map(t => (
-                    <button key={t} type="button" onClick={() => setNewEntry({...newEntry, tipo: t})} className={`py-2 text-xs font-semibold rounded-lg border transition-all ${newEntry.tipo === t ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>{t}</button>
-                  ))}
-                </div>
-              </div>
-              <div><label className="text-sm font-medium text-slate-700 block mb-1">Descrição</label><input type="text" required value={newEntry.desc} onChange={e => setNewEntry({...newEntry, desc: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" placeholder="Ex: Pagamento Fornecedor X" /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="text-sm font-medium text-slate-700 block mb-1">Valor Bruto (R$)</label><input type="number" step="0.01" required value={newEntry.valor} onChange={e => setNewEntry({...newEntry, valor: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" placeholder="0.00" /></div>
-                <div><label className="text-sm font-medium text-slate-700 block mb-1">Vencimento / Data</label><input type="date" required value={newEntry.vencimento} onChange={e => setNewEntry({...newEntry, vencimento: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" /></div>
-              </div>
-              {newEntry.tipo === 'Entrada' && (
-                <div className="animate-in slide-in-from-top-2 bg-slate-50 p-4 rounded-xl border border-slate-100"><label className="text-sm font-medium text-slate-700 block mb-1">Imposto Retido / Desconto (R$)</label><input type="number" step="0.01" value={newEntry.imposto} onChange={e => setNewEntry({...newEntry, imposto: e.target.value})} className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2 text-sm outline-none focus:border-emerald-500" placeholder="0.00 (Opcional)" /><p className="text-xs text-slate-400 mt-1">Este valor será subtraído da entrada no cálculo do saldo líquido.</p></div>
-              )}
-              <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">Status</label>
-                <select value={newEntry.status} onChange={e => setNewEntry({...newEntry, status: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500"><option value="Pendente">Pendente</option><option value="Pago">Pago / Recebido</option><option value="Em Atraso">Em Atraso</option></select>
-              </div>
-            </div>
-            <div className="mt-8 flex gap-3 justify-end">
-              <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2.5 text-slate-500 hover:bg-slate-100 rounded-xl text-sm font-medium transition-colors">Cancelar</button>
-              <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-sm">Salvar Registro</button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-slate-900 p-6 rounded-2xl shadow-lg relative overflow-hidden flex flex-col justify-center">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500 blur-[60px] opacity-20 rounded-full"></div>
-          <p className="text-slate-400 text-sm font-medium relative z-10">Saldo Projetado</p>
-          <h3 className="text-3xl font-bold mt-1 text-white relative z-10">{formatCurrency(totais.saldo)}</h3>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
-          <p className="text-slate-500 text-sm font-medium">Entradas Líquidas Registradas</p>
-          <h3 className="text-2xl font-bold mt-1 text-emerald-600">+{formatCurrency(totais.entradas)}</h3>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
-          <p className="text-slate-500 text-sm font-medium">Saídas Registradas</p>
-          <h3 className="text-2xl font-bold mt-1 text-red-500">-{formatCurrency(totais.saidas)}</h3>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        
-        {/* Header da Tabela + Filtros */}
-        <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h3 className="font-semibold text-slate-800">Histórico de Movimentações</h3>
-          
-          <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
-            {['Todos', 'Entrada', 'Saída', 'Funcionário'].map(f => (
-              <button 
-                key={f} onClick={() => setFilterType(f)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${filterType === f ? 'bg-white shadow-sm text-slate-800 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                {f === 'Entrada' ? 'Lucros/Entradas' : f === 'Saída' ? 'Despesas' : f}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
-              <tr>
-                <th className="px-6 py-4">Descrição</th>
-                <th className="px-6 py-4">Tipo</th>
-                <th className="px-6 py-4">Valor Bruto</th>
-                <th className="px-6 py-4">Imposto</th>
-                <th className="px-6 py-4">Vencimento</th>
-                <th className="px-6 py-4">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {filteredEntries.map(entry => {
-                const isLate = entry.status === 'Em Atraso';
-                const isEntrada = entry.tipo === 'Entrada';
-                const isFunc = entry.tipo === 'Funcionário';
-                
-                return (
-                  <tr key={entry.id} className={`hover:bg-slate-50/50 transition-colors ${isLate ? 'bg-red-50/30' : ''}`}>
-                    <td className="px-6 py-4 font-medium text-slate-800">{entry.desc}</td>
-                    <td className="px-6 py-4"><span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${isEntrada ? 'bg-emerald-100 text-emerald-700' : isFunc ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{entry.tipo}</span></td>
-                    <td className={`px-6 py-4 font-bold ${isEntrada ? 'text-emerald-600' : 'text-slate-700'}`}>{isEntrada ? '+' : '-'}{formatCurrency(entry.valor)}</td>
-                    <td className="px-6 py-4 text-slate-500 text-xs">{isEntrada && entry.imposto > 0 ? <span className="text-red-500">-{formatCurrency(entry.imposto)}</span> : '-'}</td>
-                    <td className="px-6 py-4 text-slate-500">{new Date(entry.vencimento).toLocaleDateString('pt-BR')}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 w-max ${entry.status === 'Pago' ? 'bg-emerald-100 text-emerald-700' : entry.status === 'Pendente' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700 animate-pulse'}`}>
-                        {isLate && <AlertCircle size={12} />} {entry.status}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-              {filteredEntries.length === 0 && (
-                <tr><td colSpan="6" className="text-center py-8 text-slate-400">Nenhuma movimentação registrada para este filtro.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AgendaView() {
-  const [notes, setNotes] = useState([
-    { id: 1, date: '2026-02-18', text: 'Revisar contratos da obra 12 com o departamento jurídico.' },
-    { id: 2, date: '2026-02-20', text: 'Cobrar equipe de marketing sobre a campanha de maio.' }
-  ]);
-  const [events, setEvents] = useState([
-    { id: 1, title: 'Reunião Cliente Alpha', date: '2026-02-25', time: '10:00', assignee: 'João (CEO)', type: 'emerald' }
-  ]);
-  
-  const [newNote, setNewNote] = useState('');
-  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
-  const [newEvent, setNewEvent] = useState({ title: '', date: '', time: '', assignee: '' });
-
-  const addNote = (e) => {
-    e.preventDefault();
-    if(!newNote.trim()) return;
-    setNotes([{ id: Date.now(), date: new Date().toISOString().split('T')[0], text: newNote }, ...notes]);
-    setNewNote('');
-  };
-
-  const addEvent = (e) => {
-    e.preventDefault();
-    setEvents([...events, { ...newEvent, id: Date.now(), type: 'blue' }]);
-    setIsEventModalOpen(false);
-    setNewEvent({ title: '', date: '', time: '', assignee: '' });
-  };
-
-  return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Agenda & Notas</h1>
-          <p className="text-slate-500 text-sm mt-1">Gerencie compromissos da equipe e anotações.</p>
-        </div>
-        <button onClick={() => setIsEventModalOpen(true)} className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm flex items-center gap-2">
-          <CalendarPlus size={16}/> Novo Evento / Demanda
-        </button>
-      </div>
-
-      {isEventModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <form onSubmit={addEvent} className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95">
-            <h3 className="text-xl font-bold mb-6 text-slate-800">Agendar Novo Evento</h3>
-            <div className="space-y-4">
-              <div><label className="text-sm font-medium text-slate-700 block mb-1">Título / Demanda</label><input type="text" required value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" placeholder="Ex: Vistoria Terreno 02" /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="text-sm font-medium text-slate-700 block mb-1">Data</label><input type="date" required value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" /></div>
-                <div><label className="text-sm font-medium text-slate-700 block mb-1">Horário</label><input type="time" required value={newEvent.time} onChange={e => setNewEvent({...newEvent, time: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" /></div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">Marcar Membro (Opcional)</label>
-                <select value={newEvent.assignee} onChange={e => setNewEvent({...newEvent, assignee: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500">
-                  <option value="">Ninguém (Evento Geral)</option>
-                  {TEAM_USERS.map(u => <option key={u} value={u}>{u}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="mt-8 flex gap-3 justify-end">
-              <button type="button" onClick={() => setIsEventModalOpen(false)} className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl text-sm font-medium transition-colors">Cancelar</button>
-              <button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm">Agendar</button>
-            </div>
-          </form>
-        </div>
-      )}
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-100 p-6 min-h-[500px]">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-semibold text-lg">Próximos Eventos</h3>
-            <button className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-all">Esta Semana</button>
-          </div>
-          
-          <div className="space-y-4">
-            {events.length === 0 ? <p className="text-sm text-slate-400">Nenhum evento agendado.</p> : events.map(ev => (
-              <div key={ev.id} className={`p-4 bg-${ev.type}-50 border border-${ev.type}-100 rounded-xl flex items-center justify-between`}>
-                <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <p className={`text-xs font-bold text-${ev.type}-700 bg-${ev.type}-100 px-2 py-0.5 rounded-md inline-block`}>{ev.time} | {new Date(ev.date).toLocaleDateString('pt-BR')}</p>
-                    {ev.assignee && <span className="text-xs text-slate-600 font-medium flex items-center gap-1"><User size={12}/> {ev.assignee}</span>}
-                  </div>
-                  <p className="text-base font-semibold text-slate-800 leading-tight mt-1">{ev.title}</p>
-                </div>
-                <button className={`text-${ev.type}-600 hover:text-${ev.type}-800`}><MoreVertical size={18}/></button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-slate-900 text-white rounded-3xl shadow-lg p-6 relative overflow-hidden flex flex-col max-h-[600px]">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500 blur-[80px] opacity-20 rounded-full"></div>
-          <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 relative z-10"><FileText size={20} className="text-yellow-400" /> Bloco de Notas</h3>
-          <form onSubmit={addNote} className="relative z-10 mb-6">
-            <textarea value={newNote} onChange={e => setNewNote(e.target.value)} className="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-sm text-slate-200 outline-none resize-none focus:border-yellow-500/50 transition-colors" placeholder="Digite uma nova anotação estratégica..." rows="3"></textarea>
-            <div className="flex justify-end mt-2"><button type="submit" className="bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-4 py-1.5 rounded-lg text-sm font-bold transition-colors">Salvar Nota</button></div>
-          </form>
-          <div className="flex-1 overflow-y-auto space-y-3 relative z-10 pr-2">
-            {notes.map(note => (
-              <div key={note.id} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-                <div className="text-xs font-mono text-yellow-500/70 mb-2 border-b border-slate-700/50 pb-1 inline-block">{new Date(note.date).toLocaleDateString('pt-BR')}</div>
-                <p className="text-sm text-slate-300 leading-relaxed">{note.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ClientPortalView({ clients }) {
-  const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id || '');
-  const currentClient = clients.find(c => c.id === Number(selectedClientId)) || clients[0];
-  const currentPhaseIndex = currentClient ? currentClient.phaseIndex : 0; 
-
-  if (!currentClient) return <div className="p-8 text-center text-slate-500">Nenhum cliente cadastrado ainda. Vá em "Cadastro Cliente".</div>;
-
-  return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6 flex items-center justify-between">
-        <span className="text-sm font-medium text-slate-500">Simulando visão do cliente:</span>
-        <select value={selectedClientId} onChange={e => setSelectedClientId(e.target.value)} className="bg-slate-50 border border-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-emerald-500">
-          {clients.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-        </select>
-      </div>
-
-      <div className="bg-emerald-600 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
-        <h1 className="text-3xl font-bold">Portal de {currentClient.nome}</h1>
-        <p className="mt-2 text-emerald-100 text-lg opacity-90">Acompanhe a evolução do seu sonho, passo a passo.</p>
-        <div className="mt-8 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-emerald-200 mb-1">Fase Atual</p>
-            <h2 className="text-2xl font-semibold flex items-center gap-2"><Clock className="animate-spin-slow" size={24} /> {PHASES[currentPhaseIndex]}</h2>
-          </div>
-          <div className="text-right">
-            <p className="text-3xl font-bold">{Math.round((currentPhaseIndex / (PHASES.length - 1)) * 100)}%</p>
-            <p className="text-sm text-emerald-200">Concluído</p>
-          </div>
-        </div>
-      </div>
-
-      {currentClient.comments && currentClient.comments.length > 0 && (
-        <div className="bg-emerald-50 rounded-3xl p-6 border border-emerald-100">
-          <h3 className="font-semibold text-emerald-800 mb-3 flex items-center gap-2"><MessageSquare size={18}/> Atualizações Recentes</h3>
-          <div className="space-y-3">
-            {currentClient.comments.map((comment, idx) => (
-              <div key={idx} className="bg-white p-4 rounded-xl shadow-sm text-sm text-slate-700">{comment}</div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
-        <h3 className="text-lg font-bold text-slate-800 mb-8">Linha do Tempo da Obra</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-          {PHASES.map((phase, index) => {
-            const isCompleted = index < currentPhaseIndex;
-            const isCurrent = index === currentPhaseIndex;
-            const isFuture = index > currentPhaseIndex;
-            return (
-              <div key={index} className={`flex items-start gap-4 ${isFuture ? 'opacity-50' : ''}`}>
-                <div className="flex flex-col items-center mt-0.5">
-                  {isCompleted ? <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-sm"><CheckCircle2 size={14} strokeWidth={3} /></div> 
-                  : isCurrent ? <div className="w-6 h-6 rounded-full border-4 border-emerald-500 bg-white shadow-sm shadow-emerald-200 relative"><div className="absolute inset-0 m-auto w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div></div> 
-                  : <div className="w-6 h-6 rounded-full border-2 border-slate-200 bg-slate-50"></div>}
-                </div>
-                <div className="flex-1 pb-4 border-b border-slate-50">
-                  <p className={`font-medium text-sm ${isCurrent ? 'text-emerald-700 font-bold' : isCompleted ? 'text-slate-800' : 'text-slate-400'}`}>{index + 1}. {phase}</p>
-                  {isCurrent && <p className="text-xs text-emerald-600/80 mt-1 bg-emerald-50 inline-block px-2 py-1 rounded-md">Em andamento pela nossa equipe.</p>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ClientFormView({ clients, setClients }) {
-  const [nome, setNome] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [endereco, setEndereco] = useState('');
-  const [ocupacao, setOcupacao] = useState('');
-  const [salario, setSalario] = useState('');
-  const [tipoRenda, setTipoRenda] = useState('Formal');
-  
-  const [hasDependentes, setHasDependentes] = useState(false);
-  const [nomeDependente, setNomeDependente] = useState('');
-  const [parentescoDependente, setParentescoDependente] = useState('');
-
-  const [gerandoPDF, setGerandoPDF] = useState(false);
-
-  const handleGeneratePDF = (e) => {
-    e.preventDefault();
-    setGerandoPDF(true);
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtus - Gestão de Obras</title>
     
-    const printContent = `
-      <html>
-        <head><title>Ficha_Cliente_${nome.replace(/\s+/g, '_')}</title><style>body { font-family: Arial, sans-serif; padding: 40px; color: #333; } .header { border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; } h1 { color: #10b981; margin: 0; } .section { margin-bottom: 25px; } h2 { color: #333; font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; } .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; } .label { font-weight: bold; color: #666; font-size: 11px; text-transform: uppercase; } .value { font-size: 14px; margin-top: 4px; }</style></head>
-        <body>
-          <div class="header"><h1>Ficha de Cadastro - Virtus</h1><p style="color: #666; font-size: 14px;">Data de Emissão: ${new Date().toLocaleDateString()}</p></div>
-          <div class="section"><h2>1. Dados Pessoais</h2><div class="grid"><div><div class="label">Nome Completo</div><div class="value">${nome}</div></div><div><div class="label">Telefone / WhatsApp</div><div class="value">${telefone}</div></div><div style="grid-column: 1 / -1;"><div class="label">Endereço</div><div class="value">${endereco}</div></div></div></div>
-          <div class="section"><h2>2. Perfil Financeiro</h2><div class="grid"><div><div class="label">Ocupação Principal</div><div class="value">${ocupacao || 'Não informado'}</div></div><div><div class="label">Renda Mensal</div><div class="value">${salario || 'Não informado'}</div></div><div><div class="label">Tipo de Renda</div><div class="value">${tipoRenda}</div></div></div></div>
-          <div class="section"><h2>3. Composição Familiar</h2><div class="value">${hasDependentes ? `Dependente: ${nomeDependente} (${parentescoDependente})` : 'Cliente não possui dependentes.'}</div></div>
-          <div style="margin-top: 50px; text-align: center; color: #999; font-size: 12px;">Este documento foi gerado digitalmente pelo Sistema Virtus.</div>
-        </body>
-      </html>
-    `;
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: { 'spin-slow': 'spin 3s linear infinite' }
+                }
+            }
+        }
+    </script>
 
-    setClients([...clients, { id: Date.now(), nome, telefone, endereco, phaseIndex: 0, comments: ['Cadastro inicial recebido, documentação em análise.'] }]);
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-    setTimeout(() => {
-      setGerandoPDF(false);
-      const printWindow = window.open('', '', 'width=800,height=600');
-      if(printWindow) { printWindow.document.write(printContent); printWindow.document.close(); printWindow.focus(); printWindow.print(); }
-      setNome(''); setTelefone(''); setEndereco(''); setOcupacao(''); setSalario(''); setHasDependentes(false); setNomeDependente(''); setParentescoDependente('');
-    }, 800);
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
-      <div><h1 className="text-2xl font-bold tracking-tight text-slate-900">Novo Cadastro de Cliente</h1><p className="text-slate-500 text-sm mt-1">Preencha os dados e anexe os documentos para gerar a ficha (PDF).</p></div>
-      <form onSubmit={handleGeneratePDF} className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 space-y-8">
+    <style>
+        /* Animações Customizadas baseadas no Tailwind-animate do React */
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        .animate-zoom-in { animation: zoomIn 0.3s ease-out; }
+        .animate-slide-in-top { animation: slideInTop 0.3s ease-out; }
         
-        {/* Seção 1: Dados Pessoais */}
-        <div>
-          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2"><span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-sm flex items-center justify-center">1</span>Dados Pessoais</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1"><label className="text-sm font-medium text-slate-700">Nome Completo</label><input type="text" value={nome} onChange={e=>setNome(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" required /></div>
-            <div className="space-y-1"><label className="text-sm font-medium text-slate-700">Telefone / WhatsApp</label><input type="text" value={telefone} onChange={e=>setTelefone(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" required /></div>
-            <div className="space-y-1 md:col-span-2"><label className="text-sm font-medium text-slate-700">Endereço Atual</label><input type="text" value={endereco} onChange={e=>setEndereco(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" required /></div>
-          </div>
-        </div>
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideInTop { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        {/* Seção 2: Financeiro & Profissional */}
-        <div>
-          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2"><span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-sm flex items-center justify-center">2</span>Perfil Financeiro</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
-            <div className="space-y-1"><label className="text-sm font-medium text-slate-700">Ocupação Principal</label><input type="text" value={ocupacao} onChange={e=>setOcupacao(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" /></div>
-            <div className="space-y-1"><label className="text-sm font-medium text-slate-700">Salário / Renda Mensal Base</label><input type="text" value={salario} onChange={e=>setSalario(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" /></div>
-            <div className="space-y-1"><label className="text-sm font-medium text-slate-700">Tipo de Renda</label><select value={tipoRenda} onChange={(e) => setTipoRenda(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500"><option value="Formal">Formal (CLT, Concursado)</option><option value="Informal">Informal (Autônomo, MEI)</option></select></div>
+        /* Estilização Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Ocultar elementos para lógica de abas */
+        .hidden-view { display: none !important; }
+    </style>
+</head>
+<body class="bg-[#F5F5F7] font-sans text-slate-800 overflow-hidden h-screen flex">
+
+    <div id="root" class="w-full h-full flex"></div>
+
+    <script>
+        // --- DADOS SIMULADOS (MOCK DATA) ---
+        const PHASES = [
+            "Doc pessoais", "Análise de crédito", "Entrevista com gerente", "Contratos Virtus",
+            "Alteração CAD. Imob", "Projetos e RRT", "Alvará de construção", "Taxa de engenharia",
+            "Avaliação da engenharia", "Assinatura do contrato de financiamento", "Guias de ITBI",
+            "ITBI", "Registro do contrato", "Liberação de Terreno", "Liberação de custas cartorárias",
+            "CNO", "SCPO", "Medição 30%", "Aferição", "Medição de 60%", "Habite-se",
+            "CND RFB", "Averbação", "Medição 100%", "Liberação de 5%"
+        ];
+
+        const ROLES = ['CEO', 'Financeiro', 'Arquiteto', 'Marketing', 'Atendente', 'Cliente'];
+        const TEAM_USERS = ['Ana (Arquiteta)', 'Carlos (Financeiro)', 'Mariana (Marketing)', 'João (CEO)', 'Pedro (Atendente)'];
+
+        // --- ESTADO GLOBAL DA APLICAÇÃO ---
+        const state = {
+            isAuthenticated: false,
+            currentRole: 'CEO',
+            currentView: 'dashboard',
+            notificationsOpen: false,
             
-            {/* Lógica do Comprovante de Renda baseada no Tipo de Renda */}
-            <div className="space-y-1 animate-in slide-in-from-top-2 bg-emerald-50 border border-emerald-100 p-3 rounded-xl">
-              <label className="text-sm font-medium text-emerald-800">{tipoRenda === 'Formal' ? 'Anexar Contracheque (PDF/IMG)' : 'Anexar Extrato 6 meses (PDF/IMG)'}</label>
-              <input type="file" className="w-full text-sm text-emerald-700 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-emerald-200 file:text-emerald-800 hover:file:bg-emerald-300 mt-1 cursor-pointer" />
-            </div>
-          </div>
-        </div>
+            clients: [
+                { id: 1, nome: 'João da Silva', telefone: '(11) 99999-9999', endereco: 'Rua das Flores, 123', phaseIndex: 8, comments: ['Fundações concluídas com sucesso.'] }
+            ],
+            financeEntries: [
+                { id: 1, desc: 'Sinal - João da Silva', tipo: 'Entrada', valor: 45000, imposto: 2700, vencimento: '2026-02-10', status: 'Pago' },
+                { id: 2, desc: 'Concreto Usinado', tipo: 'Saída', valor: 12300, imposto: 0, vencimento: '2026-02-20', status: 'Em Atraso' },
+                { id: 3, desc: 'Folha de Pagamento - Equipe 1', tipo: 'Funcionário', valor: 8000, imposto: 0, vencimento: '2026-02-28', status: 'Pendente' },
+            ],
+            tasks: [
+                { id: 't1', title: 'Aprovar projeto elétrico', column: 'todo', role: 'Arquiteto', days: 2, clientId: 1, assignees: ['Ana (Arquiteta)'], comments: [{ author: 'CEO', text: 'Prioridade alta neste projeto.', date: 'Hoje, 09:00' }] },
+                { id: 't2', title: 'Pagamento fornecedor Cimento', column: 'in_progress', role: 'Financeiro', days: 5, clientId: 'internal', assignees: ['Carlos (Financeiro)'], comments: [] },
+                { id: 't3', title: 'Campanha Instagram Mês 05', column: 'review', role: 'Marketing', days: 12, clientId: 'internal', assignees: [], comments: [] },
+                { id: 't4', title: 'Assinatura Contrato', column: 'done', role: 'Atendente', days: 1, clientId: 1, assignees: ['Pedro (Atendente)'], comments: [] }
+            ],
+            notes: [
+                { id: 1, date: '2026-02-18', text: 'Revisar contratos da obra 12 com o departamento jurídico.' },
+                { id: 2, date: '2026-02-20', text: 'Cobrar equipe de marketing sobre a campanha de maio.' }
+            ],
+            events: [
+                { id: 1, title: 'Reunião Cliente Alpha', date: '2026-02-25', time: '10:00', assignee: 'João (CEO)', type: 'emerald' }
+            ],
 
-        {/* Seção 3: Familiares / Dependentes */}
-        <div>
-          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2"><span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-sm flex items-center justify-center">3</span>Composição Familiar</h3>
-          <div className="flex items-center gap-3 mb-4">
-            <label className="text-sm font-medium text-slate-700 cursor-pointer flex items-center gap-2">
-              <input type="checkbox" checked={hasDependentes} onChange={(e) => setHasDependentes(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500" />
-              Possui dependentes? (Cônjuge, Filhos...)
-            </label>
-          </div>
+            // Estados de Interface (UI)
+            draggedTaskId: null,
+            selectedTask: null,
+            isNewTaskModalOpen: false,
+            newTaskAssignees: [],
+            newTaskRole: 'Arquiteto',
+            
+            isFinanceModalOpen: false,
+            financeFilter: 'Todos',
+            newFinanceTipo: 'Entrada',
 
-          {hasDependentes && (
-            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4 animate-in fade-in slide-in-from-top-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-slate-600">Nome do Dependente Principal</label>
-                  <input type="text" value={nomeDependente} onChange={e=>setNomeDependente(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500" placeholder="Nome completo" />
+            isEventModalOpen: false,
+            
+            portalClientId: 1,
+            activeObraClient: null,
+            hasDependentesForm: false
+        };
+
+        // --- SISTEMA DE RENDERIZAÇÃO E ROTAS ---
+        function getNavItems() {
+            const items = [];
+            if (state.currentRole !== 'Cliente') {
+                items.push({ id: 'dashboard', icon: 'layout-dashboard', label: 'Dashboard' });
+                items.push({ id: 'kanban', icon: 'kanban-square', label: 'Kanban Demandas' });
+                items.push({ id: 'obras', icon: 'layout-dashboard', label: 'Acompanhamento de Obras' });
+            }
+            if (state.currentRole === 'CEO' || state.currentRole === 'Financeiro') {
+                items.push({ id: 'finance', icon: 'wallet', label: 'Financeiro' });
+            }
+            if (state.currentRole === 'CEO') {
+                items.push({ id: 'agenda', icon: 'calendar-days', label: 'Agenda & Notas' });
+            }
+            if (state.currentRole === 'Atendente' || state.currentRole === 'CEO') {
+                items.push({ id: 'new_client', icon: 'user-plus', label: 'Cadastro Cliente' });
+            }
+            if (state.currentRole === 'Cliente' || state.currentRole === 'CEO') {
+                items.push({ id: 'portal', icon: 'file-text', label: 'Portal do Cliente' });
+            }
+            return items;
+        }
+
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+        }
+
+        // --- FUNÇÕES DE AÇÃO GLOBAIS (window) ---
+        window.login = (e) => {
+            e.preventDefault();
+            state.currentRole = document.getElementById('loginRole').value;
+            state.isAuthenticated = true;
+            
+            const nav = getNavItems();
+            if(!nav.find(i => i.id === state.currentView)) state.currentView = nav[0].id;
+            
+            render();
+        };
+
+        window.logout = () => {
+            state.isAuthenticated = false;
+            render();
+        };
+
+        window.changeRole = (newRole) => {
+            state.currentRole = newRole;
+            const nav = getNavItems();
+            if(!nav.find(i => i.id === state.currentView)) state.currentView = nav[0].id;
+            render();
+        };
+
+        window.changeView = (viewId) => {
+            state.currentView = viewId;
+            render();
+        };
+
+        window.toggleNotifications = () => {
+            state.notificationsOpen = !state.notificationsOpen;
+            render();
+        };
+
+        // KANBAN ACTIONS
+        window.dragStart = (e, id) => {
+            state.draggedTaskId = id;
+            e.dataTransfer.effectAllowed = "move";
+            setTimeout(() => e.target.style.opacity = "0.5", 0);
+        };
+        window.dragEnd = (e) => {
+            e.target.style.opacity = "1";
+            state.draggedTaskId = null;
+        };
+        window.dragOver = (e) => e.preventDefault();
+        window.drop = (e, columnId) => {
+            e.preventDefault();
+            if (state.draggedTaskId) {
+                const task = state.tasks.find(t => t.id === state.draggedTaskId);
+                if (task) task.column = columnId;
+                render();
+            }
+        };
+        window.openTask = (id) => {
+            state.selectedTask = state.tasks.find(t => t.id === id);
+            render();
+        };
+        window.closeTask = () => {
+            state.selectedTask = null;
+            render();
+        };
+        window.toggleNewTaskModal = (isOpen) => {
+            state.isNewTaskModalOpen = isOpen;
+            if(!isOpen) state.newTaskAssignees = [];
+            render();
+        };
+        window.addTaskAssignee = (val) => {
+            if(val && !state.newTaskAssignees.includes(val)) state.newTaskAssignees.push(val);
+            render();
+        };
+        window.removeTaskAssignee = (val) => {
+            state.newTaskAssignees = state.newTaskAssignees.filter(a => a !== val);
+            render();
+        };
+        window.handleCreateTask = (e) => {
+            e.preventDefault();
+            const title = document.getElementById('newTaskTitle').value;
+            const role = document.getElementById('newTaskRole').value;
+            const days = document.getElementById('newTaskDays').value;
+            
+            state.tasks.push({
+                id: Date.now().toString(),
+                title: title, column: 'todo', role: role, days: Number(days),
+                clientId: 'internal', assignees: [...state.newTaskAssignees], comments: []
+            });
+            window.toggleNewTaskModal(false);
+        };
+        window.updateTaskDays = (days) => {
+            if(state.selectedTask) state.selectedTask.days = Number(days);
+        };
+        window.updateTaskClient = (clientId) => {
+            if(state.selectedTask) state.selectedTask.clientId = clientId === 'internal' ? 'internal' : Number(clientId);
+        };
+        window.addTaskAssigneeExisting = (val) => {
+            if(val && state.selectedTask && !(state.selectedTask.assignees || []).includes(val)) {
+                state.selectedTask.assignees = state.selectedTask.assignees || [];
+                state.selectedTask.assignees.push(val);
+                render();
+            }
+        };
+        window.removeTaskAssigneeExisting = (val) => {
+            if(state.selectedTask) {
+                state.selectedTask.assignees = state.selectedTask.assignees.filter(a => a !== val);
+                render();
+            }
+        };
+        window.addComment = (e) => {
+            e.preventDefault();
+            const input = document.getElementById('taskCommentInput');
+            if(!input.value) return;
+            state.selectedTask.comments = state.selectedTask.comments || [];
+            state.selectedTask.comments.push({ 
+                author: state.currentRole, text: input.value, 
+                date: new Date().toLocaleString('pt-BR', { hour: '2-digit', minute:'2-digit', day:'2-digit', month:'2-digit' }) 
+            });
+            input.value = '';
+            render();
+        };
+
+        // FINANCE ACTIONS
+        window.setFinanceFilter = (filter) => {
+            state.financeFilter = filter;
+            render();
+        };
+        window.toggleFinanceModal = (isOpen) => {
+            state.isFinanceModalOpen = isOpen;
+            if(isOpen) state.newFinanceTipo = 'Entrada';
+            render();
+        };
+        window.setFinanceTipo = (tipo) => {
+            state.newFinanceTipo = tipo;
+            render();
+        };
+        window.handleAddEntry = (e) => {
+            e.preventDefault();
+            const desc = document.getElementById('finDesc').value;
+            const valor = document.getElementById('finValor').value;
+            const venc = document.getElementById('finVenc').value;
+            const status = document.getElementById('finStatus').value;
+            const impostoInput = document.getElementById('finImposto');
+            const imposto = state.newFinanceTipo === 'Entrada' && impostoInput ? Number(impostoInput.value) : 0;
+
+            state.financeEntries.push({
+                id: Date.now(), desc: desc, tipo: state.newFinanceTipo, valor: Number(valor), imposto: imposto, vencimento: venc, status: status
+            });
+            window.toggleFinanceModal(false);
+        };
+
+        // AGENDA ACTIONS
+        window.toggleEventModal = (isOpen) => {
+            state.isEventModalOpen = isOpen;
+            render();
+        };
+        window.addNote = (e) => {
+            e.preventDefault();
+            const input = document.getElementById('newNoteInput');
+            if(!input.value.trim()) return;
+            state.notes.unshift({ id: Date.now(), date: new Date().toISOString().split('T')[0], text: input.value });
+            render();
+        };
+        window.addEvent = (e) => {
+            e.preventDefault();
+            state.events.push({
+                id: Date.now(), type: 'blue',
+                title: document.getElementById('evTitle').value,
+                date: document.getElementById('evDate').value,
+                time: document.getElementById('evTime').value,
+                assignee: document.getElementById('evAssignee').value
+            });
+            window.toggleEventModal(false);
+        };
+
+        // CLIENT FORM ACTIONS
+        window.toggleDependentes = (isChecked) => {
+            state.hasDependentesForm = isChecked;
+            render(); // Redraws to show/hide the fields
+        };
+        window.handleGeneratePDF = (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnGerarPdf');
+            btn.innerHTML = '<i data-lucide="clock" class="animate-spin inline mr-2"></i> Processando PDF...';
+            btn.classList.add('opacity-70', 'cursor-not-allowed');
+            lucide.createIcons();
+
+            const nome = document.getElementById('cliNome').value;
+            const tel = document.getElementById('cliTel').value;
+            const end = document.getElementById('cliEnd').value;
+            const ocu = document.getElementById('cliOcu').value;
+            const sal = document.getElementById('cliSal').value;
+            const tipoRenda = document.getElementById('cliTipoRenda').value;
+            
+            let depHtml = 'Cliente não possui dependentes.';
+            if(state.hasDependentesForm) {
+                const depNome = document.getElementById('cliDepNome').value;
+                const depPar = document.getElementById('cliDepPar').value;
+                depHtml = `Dependente: ${depNome} (${depPar})`;
+            }
+
+            const printContent = `
+            <html>
+                <head><title>Ficha_Cliente_${nome.replace(/\s+/g, '_')}</title><style>body { font-family: Arial, sans-serif; padding: 40px; color: #333; } .header { border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 30px; } h1 { color: #10b981; margin: 0; } .section { margin-bottom: 25px; } h2 { color: #333; font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; } .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; } .label { font-weight: bold; color: #666; font-size: 11px; text-transform: uppercase; } .value { font-size: 14px; margin-top: 4px; }</style></head>
+                <body>
+                <div class="header"><h1>Ficha de Cadastro - Virtus</h1><p style="color: #666; font-size: 14px;">Data de Emissão: ${new Date().toLocaleDateString()}</p></div>
+                <div class="section"><h2>1. Dados Pessoais</h2><div class="grid"><div><div class="label">Nome Completo</div><div class="value">${nome}</div></div><div><div class="label">Telefone / WhatsApp</div><div class="value">${tel}</div></div><div style="grid-column: 1 / -1;"><div class="label">Endereço</div><div class="value">${end}</div></div></div></div>
+                <div class="section"><h2>2. Perfil Financeiro</h2><div class="grid"><div><div class="label">Ocupação Principal</div><div class="value">${ocu || 'Não informado'}</div></div><div><div class="label">Renda Mensal</div><div class="value">${sal || 'Não informado'}</div></div><div><div class="label">Tipo de Renda</div><div class="value">${tipoRenda}</div></div></div></div>
+                <div class="section"><h2>3. Composição Familiar</h2><div class="value">${depHtml}</div></div>
+                <div style="margin-top: 50px; text-align: center; color: #999; font-size: 12px;">Este documento foi gerado digitalmente pelo Sistema Virtus.</div>
+                </body>
+            </html>
+            `;
+
+            state.clients.push({ id: Date.now(), nome: nome, telefone: tel, endereco: end, phaseIndex: 0, comments: ['Cadastro inicial recebido, documentação em análise.'] });
+
+            setTimeout(() => {
+                const printWindow = window.open('', '', 'width=800,height=600');
+                if(printWindow) { printWindow.document.write(printContent); printWindow.document.close(); printWindow.focus(); printWindow.print(); }
+                // Reset form
+                state.hasDependentesForm = false;
+                render();
+            }, 800);
+        };
+
+        // PORTAL & OBRAS ACTIONS
+        window.setPortalClient = (id) => { state.portalClientId = Number(id); render(); };
+        window.updateObraPhase = (id, phaseIdx) => {
+            const client = state.clients.find(c => c.id === id);
+            if(client) client.phaseIndex = parseInt(phaseIdx);
+            render();
+        };
+        window.toggleActiveObra = (id) => {
+            state.activeObraClient = state.activeObraClient === id ? null : id;
+            render();
+        };
+        window.addObraComment = (e, id) => {
+            e.preventDefault();
+            const input = document.getElementById('obraComment_' + id);
+            if(!input.value) return;
+            const client = state.clients.find(c => c.id === id);
+            client.comments = client.comments || [];
+            client.comments.push(input.value);
+            state.activeObraClient = null;
+            render();
+        };
+
+        // --- RENDERIZADORES DE VIEWS ---
+
+        function renderLogin() {
+            return `
+            <div class="w-full min-h-screen bg-slate-50 flex items-center justify-center relative overflow-hidden">
+                <div class="absolute -top-40 -right-40 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl"></div>
+                
+                <div class="w-full max-w-md bg-white/80 backdrop-blur-xl border border-slate-100 rounded-3xl shadow-2xl p-8 relative z-10 animate-zoom-in">
+                    <div class="text-center mb-10">
+                        <div class="w-16 h-16 rounded-2xl bg-emerald-500 flex items-center justify-center text-white font-bold text-3xl shadow-lg shadow-emerald-500/30 mx-auto mb-4">V</div>
+                        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Virtus</h1>
+                        <p class="text-slate-500 text-sm mt-1">Sistema Integrado de Gestão de Obras</p>
+                    </div>
+
+                    <form class="space-y-5" onsubmit="window.login(event)">
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">E-mail corporativo</label>
+                            <div class="relative">
+                                <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
+                                <input type="email" value="usuario@virtus.com.br" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" required />
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Senha</label>
+                            <div class="relative">
+                                <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
+                                <input type="password" value="******" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" required />
+                            </div>
+                        </div>
+
+                        <div class="space-y-1 pt-2">
+                            <label class="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Simular Acesso Como:</label>
+                            <div class="relative">
+                                <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 w-4 h-4"></i>
+                                <select id="loginRole" class="w-full bg-emerald-50/50 border border-emerald-200 text-emerald-900 font-medium rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all cursor-pointer">
+                                    ${ROLES.map(r => `<option value="${r}" ${r===state.currentRole?'selected':''}>${r}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl py-3.5 text-sm font-semibold shadow-lg transition-all flex items-center justify-center gap-2 mt-6 group">
+                            Entrar no Sistema <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </form>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-slate-600">Grau de Parentesco / Idade</label>
-                  <input type="text" value={parentescoDependente} onChange={e=>setParentescoDependente(e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500" placeholder="Ex: Esposa, 32 anos" />
+            </div>`;
+        }
+
+        function renderDashboard() {
+            const stats = [
+                { title: 'Obras em Andamento', value: '12', trend: '+2 esse mês', color: 'bg-emerald-500' },
+                { title: 'Demandas Pendentes', value: '34', trend: '5 em atraso', color: 'bg-amber-500' },
+                { title: 'Faturamento Estimado', value: 'R$ 450k', trend: 'Alinhado com a meta', color: 'bg-blue-500' },
+                { title: 'Tempo Médio Entrega', value: '4.2 Dias', trend: 'SLA dentro da meta', color: 'bg-indigo-500' }
+            ];
+
+            return `
+            <div class="max-w-6xl mx-auto space-y-8 animate-fade-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Visão Geral</h1>
+                        <p class="text-slate-500 text-sm mt-1">Bem-vindo ao sistema de gestão Virtus.</p>
+                    </div>
                 </div>
-              </div>
-              <div className="pt-2 border-t border-slate-200">
-                <label className="text-xs font-medium text-slate-600 block mb-1 flex items-center gap-1"><Paperclip size={12}/> Anexar Documento do Dependente (RG/CPF)</label>
-                <input type="file" className="text-sm text-slate-500 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer" />
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Seção 4: Documentação Geral (Fachada e RG) */}
-        <div>
-          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2"><span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-sm flex items-center justify-center">4</span>Documentação & Projeto</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    ${stats.map(s => `
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-40 relative overflow-hidden group">
+                        <div class="relative z-10">
+                            <p class="text-sm font-medium text-slate-500">${s.title}</p>
+                            <h3 class="text-3xl font-bold mt-2 text-slate-900">${s.value}</h3>
+                        </div>
+                        <p class="text-xs text-slate-400 relative z-10">${s.trend}</p>
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full opacity-10 group-hover:scale-125 transition-transform duration-500 ${s.color}"></div>
+                    </div>`).join('')}
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-96 flex items-center justify-center">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                            <i data-lucide="layout-dashboard" class="text-slate-300 w-6 h-6"></i>
+                        </div>
+                        <p class="text-slate-500 font-medium">Gráficos de Desempenho em breve</p>
+                        <p class="text-sm text-slate-400 mt-1">A área de BI está sendo conectada ao banco de dados.</p>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function renderKanban() {
+            const columns = [
+                { id: 'todo', title: 'A Fazer' },
+                { id: 'in_progress', title: 'Em Andamento' },
+                { id: 'review', title: 'Validação' },
+                { id: 'done', title: 'Concluído' }
+            ];
+
+            let kanbanHtml = `
+            <div class="h-full flex flex-col space-y-6 animate-fade-in">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Kanban de Demandas</h1>
+                        <p class="text-slate-500 text-sm mt-1">Demandas do seu setor (<strong class="text-emerald-600">${state.currentRole}</strong>) estão destacadas.</p>
+                    </div>
+                    <button onclick="window.toggleNewTaskModal(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Nova Demanda
+                    </button>
+                </div>
+                <div class="flex-1 flex gap-6 overflow-x-auto pb-4">`;
+
+            columns.forEach(col => {
+                const colTasks = state.tasks.filter(t => t.column === col.id);
+                kanbanHtml += `
+                    <div class="flex-shrink-0 w-80 bg-slate-100/50 rounded-2xl p-4 flex flex-col border border-slate-200/50" ondragover="window.dragOver(event)" ondrop="window.drop(event, '${col.id}')">
+                        <div class="flex items-center justify-between mb-4 px-1">
+                            <h3 class="font-semibold text-slate-700 text-sm">${col.title}</h3>
+                            <span class="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full font-medium">${colTasks.length}</span>
+                        </div>
+                        <div class="flex-1 flex flex-col gap-3 overflow-y-auto min-h-[150px] pr-1">`;
+                
+                colTasks.forEach(task => {
+                    const isMine = task.role === state.currentRole || (task.assignees || []).some(a => a.includes(state.currentRole));
+                    const clientName = task.clientId !== 'internal' ? (state.clients.find(c => c.id === task.clientId)?.nome || 'Cliente') : '';
+                    
+                    kanbanHtml += `
+                            <div draggable="true" ondragstart="window.dragStart(event, '${task.id}')" ondragend="window.dragEnd(event)" onclick="window.openTask('${task.id}')"
+                                class="p-4 rounded-xl shadow-sm cursor-grab active:cursor-grabbing transition-all group relative border ${isMine ? 'bg-emerald-50/80 border-emerald-300 ring-2 ring-emerald-500/20 hover:shadow-md hover:border-emerald-400' : 'bg-white border-slate-100 hover:shadow-md hover:border-slate-300'}">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="text-[10px] uppercase font-bold px-2 py-1 rounded-md ${isMine ? 'bg-emerald-200 text-emerald-800' : 'bg-slate-100 text-slate-600'}">${task.role}</span>
+                                    ${task.clientId !== 'internal' ? `<span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded-md border border-blue-100 font-medium truncate max-w-[100px]">${clientName}</span>` : ''}
+                                </div>
+                                <p class="text-sm font-medium leading-snug mb-3 ${isMine ? 'text-emerald-950' : 'text-slate-800'}">${task.title}</p>
+                                
+                                ${(task.assignees && task.assignees.length > 0) ? `
+                                <div class="flex flex-wrap gap-1 mb-3">
+                                    ${task.assignees.map(a => `<span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 flex items-center gap-1"><i data-lucide="user" class="w-3 h-3"></i> ${a.split(' ')[0]}</span>`).join('')}
+                                </div>` : ''}
+
+                                <div class="flex items-center justify-between text-xs mt-auto pt-3 border-t border-black/5">
+                                    <div class="flex items-center gap-3 ${isMine ? 'text-emerald-700' : 'text-slate-400'}">
+                                        <span class="flex items-center gap-1"><i data-lucide="message-square" class="w-3 h-3"></i> ${task.comments?.length || 0}</span>
+                                    </div>
+                                    <span class="flex items-center gap-1 px-2 py-1 rounded-md ${isMine ? 'bg-emerald-200/50 text-emerald-800' : 'bg-slate-50 text-slate-500'}">
+                                        <i data-lucide="clock" class="w-2.5 h-2.5"></i> ${task.days}d SLA
+                                    </span>
+                                </div>
+                            </div>`;
+                });
+                kanbanHtml += `</div></div>`;
+            });
+            kanbanHtml += `</div>`;
+
+            // MODAL NOVA DEMANDA
+            if(state.isNewTaskModalOpen) {
+                kanbanHtml += `
+                <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+                    <form onsubmit="window.handleCreateTask(event)" class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-zoom-in">
+                        <h3 class="text-xl font-bold mb-6 text-slate-800">Criar Nova Demanda</h3>
+                        <div class="space-y-4">
+                            <div><label class="text-sm font-medium text-slate-700 block mb-1">Título da Demanda</label><input type="text" id="newTaskTitle" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" placeholder="O que precisa ser feito?" /></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-sm font-medium text-slate-700 block mb-1">Setor Responsável</label>
+                                    <select id="newTaskRole" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500">
+                                        ${ROLES.map(r => `<option value="${r}">${r}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div><label class="text-sm font-medium text-slate-700 block mb-1">Prazo SLA (Dias)</label><input type="number" id="newTaskDays" min="1" value="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" /></div>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-slate-700 block mb-1">Atribuir Pessoa (Opcional)</label>
+                                <select onchange="window.addTaskAssignee(this.value); this.value='';" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500 mb-2">
+                                    <option value="">Selecione para adicionar...</option>
+                                    ${TEAM_USERS.map(u => `<option value="${u}">${u}</option>`).join('')}
+                                </select>
+                                <div class="flex flex-wrap gap-2">
+                                    ${state.newTaskAssignees.map(a => `<span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-1 rounded-md flex items-center gap-1">${a} <button type="button" onclick="window.removeTaskAssignee('${a}')" class="hover:text-red-500 font-bold ml-1">×</button></span>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-8 flex gap-3 justify-end">
+                            <button type="button" onclick="window.toggleNewTaskModal(false)" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl text-sm font-medium transition-colors">Cancelar</button>
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm">Criar Card</button>
+                        </div>
+                    </form>
+                </div>`;
+            }
+
+            // MODAL DETALHE TAREFA
+            if(state.selectedTask) {
+                const task = state.selectedTask;
+                kanbanHtml += `
+                <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+                    <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-zoom-in">
+                        <div class="p-6 border-b border-slate-100 flex justify-between items-start bg-slate-50/50">
+                            <div>
+                                <div class="flex gap-2 mb-2"><span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-1 rounded-md">Setor: ${task.role}</span></div>
+                                <h2 class="text-2xl font-bold text-slate-900">${task.title}</h2>
+                            </div>
+                            <button onclick="window.closeTask()" class="p-2 hover:bg-slate-200 rounded-full text-slate-500 transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+                        </div>
+                        <div class="p-6 flex-1 overflow-y-auto space-y-6">
+                            <div class="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label class="text-sm font-semibold text-slate-700 block mb-2 flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i> Prazo SLA</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" min="1" value="${task.days}" onchange="window.updateTaskDays(this.value)" class="w-24 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-emerald-500 text-center font-bold" />
+                                        <span class="text-sm text-slate-500">Dias</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold text-slate-700 block mb-2">Obra / Cliente Vinculado</label>
+                                    <select onchange="window.updateTaskClient(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500">
+                                        <option value="internal" ${task.clientId === 'internal' ? 'selected' : ''}>🏢 Demanda Interna</option>
+                                        <optgroup label="Clientes Cadastrados">
+                                            ${state.clients.map(c => `<option value="${c.id}" ${task.clientId === c.id ? 'selected' : ''}>👤 ${c.nome}</option>`).join('')}
+                                        </optgroup>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-sm font-semibold text-slate-700 block mb-2 flex items-center gap-1"><i data-lucide="users" class="w-3.5 h-3.5"></i> Responsáveis</label>
+                                <div class="flex flex-wrap gap-2 mb-2">
+                                    ${(task.assignees || []).map(a => `<span class="text-xs bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-lg flex items-center gap-2 font-medium"><i data-lucide="user" class="w-3 h-3"></i> ${a} <button onclick="window.removeTaskAssigneeExisting('${a}')" class="hover:text-red-500 ml-1">×</button></span>`).join('')}
+                                </div>
+                                <select onchange="window.addTaskAssigneeExisting(this.value); this.value='';" class="w-full max-w-xs bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-emerald-500">
+                                    <option value="">+ Anexar pessoa...</option>
+                                    ${TEAM_USERS.map(u => `<option value="${u}">${u}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="pt-4 border-t border-slate-100">
+                                <h3 class="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2"><i data-lucide="message-square" class="w-4 h-4"></i> Comentários</h3>
+                                <div class="space-y-4 mb-4 max-h-60 overflow-y-auto pr-2">
+                                    ${(!task.comments || task.comments.length === 0) ? '<p class="text-sm text-slate-400 italic text-center py-4">Nenhum comentário ainda.</p>' : 
+                                    task.comments.map(c => `
+                                        <div class="flex flex-col ${c.author === state.currentRole ? 'items-end' : 'items-start'}">
+                                            <div class="flex items-center gap-2 mb-1"><span class="text-xs font-semibold text-slate-600">${c.author}</span><span class="text-[10px] text-slate-400">${c.date}</span></div>
+                                            <div class="px-4 py-2 rounded-2xl max-w-[85%] text-sm ${c.author === state.currentRole ? 'bg-emerald-600 text-white rounded-tr-sm' : 'bg-slate-100 text-slate-800 rounded-tl-sm'}">${c.text}</div>
+                                        </div>`).join('')}
+                                </div>
+                                <form onsubmit="window.addComment(event)" class="flex gap-2">
+                                    <input type="text" id="taskCommentInput" placeholder="Escreva um comentário..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" />
+                                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium">Enviar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            kanbanHtml += `</div>`;
+            return kanbanHtml;
+        }
+
+        function renderFinance() {
+            let entradasTot = 0, saidasTot = 0;
+            state.financeEntries.forEach(e => {
+                if(e.tipo === 'Entrada') entradasTot += Number(e.valor) - (Number(e.imposto) || 0);
+                else saidasTot += Number(e.valor);
+            });
+            const saldoTot = 245000 + entradasTot - saidasTot;
+            const filtered = state.financeEntries.filter(e => state.financeFilter === 'Todos' || e.tipo === state.financeFilter);
+
+            let html = `
+            <div class="max-w-6xl mx-auto space-y-8 animate-fade-in">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Módulo Financeiro</h1>
+                        <p class="text-slate-500 text-sm mt-1">Gestão de fluxo de caixa, pagamentos e impostos.</p>
+                    </div>
+                    <button onclick="window.toggleFinanceModal(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Novo Lançamento
+                    </button>
+                </div>`;
+
+            if(state.isFinanceModalOpen) {
+                html += `
+                <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+                    <form onsubmit="window.handleAddEntry(event)" class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-zoom-in">
+                        <h3 class="text-xl font-bold mb-6 text-slate-800">Registrar Movimentação</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm font-medium text-slate-700 block mb-1">Tipo de Lançamento</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    ${['Entrada', 'Saída', 'Funcionário'].map(t => `<button type="button" onclick="window.setFinanceTipo('${t}')" class="py-2 text-xs font-semibold rounded-lg border transition-all ${state.newFinanceTipo === t ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}">${t}</button>`).join('')}
+                                </div>
+                            </div>
+                            <div><label class="text-sm font-medium text-slate-700 block mb-1">Descrição</label><input type="text" id="finDesc" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" placeholder="Ex: Pagamento Fornecedor X" /></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="text-sm font-medium text-slate-700 block mb-1">Valor Bruto (R$)</label><input type="number" id="finValor" step="0.01" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" placeholder="0.00" /></div>
+                                <div><label class="text-sm font-medium text-slate-700 block mb-1">Vencimento / Data</label><input type="date" id="finVenc" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" /></div>
+                            </div>
+                            ${state.newFinanceTipo === 'Entrada' ? `
+                            <div class="animate-slide-in-top bg-slate-50 p-4 rounded-xl border border-slate-100"><label class="text-sm font-medium text-slate-700 block mb-1">Imposto Retido (R$)</label><input type="number" id="finImposto" step="0.01" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2 text-sm outline-none focus:border-emerald-500" placeholder="0.00 (Opcional)" /><p class="text-xs text-slate-400 mt-1">Este valor será subtraído da entrada no cálculo do saldo líquido.</p></div>` : ''}
+                            <div>
+                                <label class="text-sm font-medium text-slate-700 block mb-1">Status</label>
+                                <select id="finStatus" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500"><option value="Pendente">Pendente</option><option value="Pago">Pago / Recebido</option><option value="Em Atraso">Em Atraso</option></select>
+                            </div>
+                        </div>
+                        <div class="mt-8 flex gap-3 justify-end">
+                            <button type="button" onclick="window.toggleFinanceModal(false)" class="px-4 py-2.5 text-slate-500 hover:bg-slate-100 rounded-xl text-sm font-medium transition-colors">Cancelar</button>
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-sm">Salvar Registro</button>
+                        </div>
+                    </form>
+                </div>`;
+            }
+
+            html += `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-slate-900 p-6 rounded-2xl shadow-lg relative overflow-hidden flex flex-col justify-center">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500 blur-[60px] opacity-20 rounded-full"></div>
+                        <p class="text-slate-400 text-sm font-medium relative z-10">Saldo Projetado</p>
+                        <h3 class="text-3xl font-bold mt-1 text-white relative z-10">${formatCurrency(saldoTot)}</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
+                        <p class="text-slate-500 text-sm font-medium">Entradas Líquidas Registradas</p>
+                        <h3 class="text-2xl font-bold mt-1 text-emerald-600">+${formatCurrency(entradasTot)}</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
+                        <p class="text-slate-500 text-sm font-medium">Saídas Registradas</p>
+                        <h3 class="text-2xl font-bold mt-1 text-red-500">-${formatCurrency(saidasTot)}</h3>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h3 class="font-semibold text-slate-800">Histórico de Movimentações</h3>
+                        <div class="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
+                            ${['Todos', 'Entrada', 'Saída', 'Funcionário'].map(f => `<button onclick="window.setFinanceFilter('${f}')" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${state.financeFilter === f ? 'bg-white shadow-sm text-slate-800 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}">${f === 'Entrada' ? 'Lucros/Entradas' : f === 'Saída' ? 'Despesas' : f}</button>`).join('')}
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+                                <tr><th class="px-6 py-4">Descrição</th><th class="px-6 py-4">Tipo</th><th class="px-6 py-4">Valor Bruto</th><th class="px-6 py-4">Imposto</th><th class="px-6 py-4">Vencimento</th><th class="px-6 py-4">Status</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                ${filtered.map(e => {
+                                    const isLate = e.status === 'Em Atraso', isEnt = e.tipo === 'Entrada', isFunc = e.tipo === 'Funcionário';
+                                    return `
+                                    <tr class="hover:bg-slate-50/50 transition-colors ${isLate ? 'bg-red-50/30' : ''}">
+                                        <td class="px-6 py-4 font-medium text-slate-800">${e.desc}</td>
+                                        <td class="px-6 py-4"><span class="px-2 py-1 rounded text-[10px] font-bold uppercase ${isEnt ? 'bg-emerald-100 text-emerald-700' : isFunc ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}">${e.tipo}</span></td>
+                                        <td class="px-6 py-4 font-bold ${isEnt ? 'text-emerald-600' : 'text-slate-700'}">${isEnt ? '+' : '-'}${formatCurrency(e.valor)}</td>
+                                        <td class="px-6 py-4 text-slate-500 text-xs">${isEnt && e.imposto > 0 ? `<span class="text-red-500">-${formatCurrency(e.imposto)}</span>` : '-'}</td>
+                                        <td class="px-6 py-4 text-slate-500">${new Date(e.vencimento).toLocaleDateString('pt-BR')}</td>
+                                        <td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 w-max ${e.status === 'Pago' ? 'bg-emerald-100 text-emerald-700' : e.status === 'Pendente' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700 animate-pulse'}">${isLate ? '<i data-lucide="alert-circle" class="w-3 h-3"></i>' : ''} ${e.status}</span></td>
+                                    </tr>`;
+                                }).join('')}
+                                ${filtered.length === 0 ? '<tr><td colspan="6" class="text-center py-8 text-slate-400">Nenhuma movimentação registrada.</td></tr>' : ''}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>`;
+            return html;
+        }
+
+        function renderAgenda() {
+            let html = `
+            <div class="max-w-6xl mx-auto space-y-6 animate-fade-in">
+                <div class="flex justify-between items-end">
+                    <div><h1 class="text-2xl font-bold tracking-tight text-slate-900">Agenda & Notas</h1><p class="text-slate-500 text-sm mt-1">Gerencie compromissos da equipe e anotações.</p></div>
+                    <button onclick="window.toggleEventModal(true)" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm flex items-center gap-2"><i data-lucide="calendar-plus" class="w-4 h-4"></i> Novo Evento</button>
+                </div>`;
+
+            if(state.isEventModalOpen) {
+                html += `
+                <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+                    <form onsubmit="window.addEvent(event)" class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-zoom-in">
+                        <h3 class="text-xl font-bold mb-6 text-slate-800">Agendar Novo Evento</h3>
+                        <div class="space-y-4">
+                            <div><label class="text-sm font-medium text-slate-700 block mb-1">Título / Demanda</label><input type="text" id="evTitle" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" placeholder="Ex: Vistoria Terreno 02" /></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="text-sm font-medium text-slate-700 block mb-1">Data</label><input type="date" id="evDate" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" /></div>
+                                <div><label class="text-sm font-medium text-slate-700 block mb-1">Horário</label><input type="time" id="evTime" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" /></div>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-slate-700 block mb-1">Marcar Membro (Opcional)</label>
+                                <select id="evAssignee" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500"><option value="">Ninguém (Evento Geral)</option>${TEAM_USERS.map(u => `<option value="${u}">${u}</option>`).join('')}</select>
+                            </div>
+                        </div>
+                        <div class="mt-8 flex gap-3 justify-end"><button type="button" onclick="window.toggleEventModal(false)" class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-xl text-sm font-medium">Cancelar</button><button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-xl text-sm font-medium shadow-sm">Agendar</button></div>
+                    </form>
+                </div>`;
+            }
+
+            html += `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-100 p-6 min-h-[500px]">
+                        <div class="flex justify-between items-center mb-6"><h3 class="font-semibold text-lg">Próximos Eventos</h3><button class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-all">Esta Semana</button></div>
+                        <div class="space-y-4">
+                            ${state.events.length === 0 ? '<p class="text-sm text-slate-400">Nenhum evento agendado.</p>' : 
+                            state.events.map(ev => `
+                            <div class="p-4 bg-${ev.type}-50 border border-${ev.type}-100 rounded-xl flex items-center justify-between">
+                                <div>
+                                    <div class="flex items-center gap-3 mb-1"><p class="text-xs font-bold text-${ev.type}-700 bg-${ev.type}-100 px-2 py-0.5 rounded-md inline-block">${ev.time} | ${new Date(ev.date).toLocaleDateString('pt-BR')}</p>${ev.assignee ? `<span class="text-xs text-slate-600 font-medium flex items-center gap-1"><i data-lucide="user" class="w-3 h-3"></i> ${ev.assignee}</span>` : ''}</div>
+                                    <p class="text-base font-semibold text-slate-800 leading-tight mt-1">${ev.title}</p>
+                                </div>
+                                <button class="text-${ev.type}-600 hover:text-${ev.type}-800"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
+                            </div>`).join('')}
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 text-white rounded-3xl shadow-lg p-6 relative overflow-hidden flex flex-col max-h-[600px]">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-yellow-500 blur-[80px] opacity-20 rounded-full"></div>
+                        <h3 class="font-semibold text-lg mb-4 flex items-center gap-2 relative z-10"><i data-lucide="file-text" class="text-yellow-400 w-5 h-5"></i> Bloco de Notas</h3>
+                        <form onsubmit="window.addNote(event)" class="relative z-10 mb-6">
+                            <textarea id="newNoteInput" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-sm text-slate-200 outline-none resize-none focus:border-yellow-500/50 transition-colors" placeholder="Digite uma nova anotação estratégica..." rows="3"></textarea>
+                            <div class="flex justify-end mt-2"><button type="submit" class="bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-4 py-1.5 rounded-lg text-sm font-bold transition-colors">Salvar Nota</button></div>
+                        </form>
+                        <div class="flex-1 overflow-y-auto space-y-3 relative z-10 pr-2">
+                            ${state.notes.map(note => `
+                            <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+                                <div class="text-xs font-mono text-yellow-500/70 mb-2 border-b border-slate-700/50 pb-1 inline-block">${new Date(note.date).toLocaleDateString('pt-BR')}</div>
+                                <p class="text-sm text-slate-300 leading-relaxed">${note.text}</p>
+                            </div>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            return html;
+        }
+
+        function renderClientForm() {
+            let html = `
+            <div class="max-w-4xl mx-auto space-y-8 animate-fade-in pb-12">
+                <div><h1 class="text-2xl font-bold tracking-tight text-slate-900">Novo Cadastro de Cliente</h1><p class="text-slate-500 text-sm mt-1">Preencha os dados e anexe os documentos para gerar a ficha (PDF).</p></div>
+                <form onsubmit="window.handleGeneratePDF(event)" class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 space-y-8">
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2"><span class="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-sm flex items-center justify-center">1</span>Dados Pessoais</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="space-y-1"><label class="text-sm font-medium text-slate-700">Nome Completo</label><input type="text" id="cliNome" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500 transition-all" /></div>
+                            <div class="space-y-1"><label class="text-sm font-medium text-slate-700">Telefone / WhatsApp</label><input type="text" id="cliTel" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500 transition-all" /></div>
+                            <div class="space-y-1 md:col-span-2"><label class="text-sm font-medium text-slate-700">Endereço Atual</label><input type="text" id="cliEnd" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500 transition-all" /></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2"><span class="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-sm flex items-center justify-center">2</span>Perfil Financeiro</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
+                            <div class="space-y-1"><label class="text-sm font-medium text-slate-700">Ocupação Principal</label><input type="text" id="cliOcu" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" /></div>
+                            <div class="space-y-1"><label class="text-sm font-medium text-slate-700">Salário / Renda Mensal Base</label><input type="text" id="cliSal" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500" /></div>
+                            <div class="space-y-1"><label class="text-sm font-medium text-slate-700">Tipo de Renda</label><select id="cliTipoRenda" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500"><option value="Formal">Formal (CLT, Concursado)</option><option value="Informal">Informal (Autônomo, MEI)</option></select></div>
+                            <div class="space-y-1 bg-emerald-50 border border-emerald-100 p-3 rounded-xl">
+                                <label class="text-sm font-medium text-emerald-800">Anexar Comprovante (PDF/IMG)</label>
+                                <input type="file" class="w-full text-sm text-emerald-700 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-emerald-200 file:text-emerald-800 hover:file:bg-emerald-300 mt-1 cursor-pointer" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2"><span class="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-sm flex items-center justify-center">3</span>Composição Familiar</h3>
+                        <div class="flex items-center gap-3 mb-4">
+                            <label class="text-sm font-medium text-slate-700 cursor-pointer flex items-center gap-2">
+                                <input type="checkbox" onchange="window.toggleDependentes(this.checked)" ${state.hasDependentesForm ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500" />
+                                Possui dependentes? (Cônjuge, Filhos...)
+                            </label>
+                        </div>
+                        ${state.hasDependentesForm ? `
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4 animate-slide-in-top">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1"><label class="text-xs font-medium text-slate-600">Nome do Dependente Principal</label><input type="text" id="cliDepNome" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500" /></div>
+                                <div class="space-y-1"><label class="text-xs font-medium text-slate-600">Grau de Parentesco / Idade</label><input type="text" id="cliDepPar" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-emerald-500" /></div>
+                            </div>
+                            <div class="pt-2 border-t border-slate-200">
+                                <label class="text-xs font-medium text-slate-600 block mb-1 flex items-center gap-1"><i data-lucide="paperclip" class="w-3 h-3"></i> Anexar Documento do Dependente (RG/CPF)</label>
+                                <input type="file" class="text-sm text-slate-500 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer" />
+                            </div>
+                        </div>` : ''}
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2"><span class="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-sm flex items-center justify-center">4</span>Documentação & Projeto</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <label class="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-emerald-400 hover:bg-emerald-50/50 transition-colors cursor-pointer group block">
+                                <div class="w-12 h-12 bg-slate-100 group-hover:bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3 transition-colors"><i data-lucide="search" class="text-slate-400 group-hover:text-emerald-600 w-5 h-5"></i></div>
+                                <p class="text-sm font-medium text-slate-700">Foto da Fachada Desejada</p><p class="text-xs text-slate-400 mt-1 mb-3">Ref. de arquitetura (JPG/PNG)</p><input type="file" class="text-xs text-slate-500 w-full file:bg-slate-100 file:border-0 file:rounded-md file:px-2 file:py-1 cursor-pointer" />
+                            </label>
+                            <label class="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-emerald-400 hover:bg-emerald-50/50 transition-colors cursor-pointer group block">
+                                <div class="w-12 h-12 bg-slate-100 group-hover:bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3 transition-colors"><i data-lucide="file-text" class="text-slate-400 group-hover:text-emerald-600 w-5 h-5"></i></div>
+                                <p class="text-sm font-medium text-slate-700">Documento de Identidade</p><p class="text-xs text-slate-400 mt-1 mb-3">RG ou CNH do titular (PDF/IMG)</p><input type="file" class="text-xs text-slate-500 w-full file:bg-slate-100 file:border-0 file:rounded-md file:px-2 file:py-1 cursor-pointer" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-slate-100 flex justify-end">
+                        <button type="submit" id="btnGerarPdf" class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-semibold shadow-md transition-all flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4"></i> Gerar Ficha em PDF
+                        </button>
+                    </div>
+                </form>
+            </div>`;
+            return html;
+        }
+
+        function renderPortal() {
+            const currentClient = state.clients.find(c => c.id === state.portalClientId) || state.clients[0];
+            if (!currentClient) return '<div class="p-8 text-center text-slate-500">Nenhum cliente cadastrado ainda.</div>';
             
-            <label className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-emerald-400 hover:bg-emerald-50/50 transition-colors cursor-pointer group block">
-              <div className="w-12 h-12 bg-slate-100 group-hover:bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3 transition-colors">
-                <Search className="text-slate-400 group-hover:text-emerald-600" size={20} />
-              </div>
-              <p className="text-sm font-medium text-slate-700">Foto da Fachada Desejada</p>
-              <p className="text-xs text-slate-400 mt-1 mb-3">Ref. de arquitetura (JPG/PNG)</p>
-              <input type="file" className="text-xs text-slate-500 w-full file:bg-slate-100 file:border-0 file:rounded-md file:px-2 file:py-1 cursor-pointer" />
-            </label>
+            const currentPhaseIndex = currentClient.phaseIndex || 0;
+
+            let html = `
+            <div class="max-w-4xl mx-auto space-y-8 animate-fade-in">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6 flex items-center justify-between">
+                    <span class="text-sm font-medium text-slate-500">Simulando visão do cliente:</span>
+                    <select onchange="window.setPortalClient(this.value)" class="bg-slate-50 border border-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-emerald-500">
+                        ${state.clients.map(c => `<option value="${c.id}" ${currentClient.id === c.id ? 'selected' : ''}>${c.nome}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="bg-emerald-600 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
+                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
+                    <h1 class="text-3xl font-bold">Portal de ${currentClient.nome}</h1>
+                    <p class="mt-2 text-emerald-100 text-lg opacity-90">Acompanhe a evolução do seu sonho, passo a passo.</p>
+                    <div class="mt-8 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-emerald-200 mb-1">Fase Atual</p>
+                            <h2 class="text-2xl font-semibold flex items-center gap-2"><i data-lucide="clock" class="animate-spin-slow w-6 h-6"></i> ${PHASES[currentPhaseIndex]}</h2>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-3xl font-bold">${Math.round((currentPhaseIndex / (PHASES.length - 1)) * 100)}%</p>
+                            <p class="text-sm text-emerald-200">Concluído</p>
+                        </div>
+                    </div>
+                </div>`;
+
+            if (currentClient.comments && currentClient.comments.length > 0) {
+                html += `
+                <div class="bg-emerald-50 rounded-3xl p-6 border border-emerald-100">
+                    <h3 class="font-semibold text-emerald-800 mb-3 flex items-center gap-2"><i data-lucide="message-square" class="w-4 h-4"></i> Atualizações Recentes</h3>
+                    <div class="space-y-3">
+                        ${currentClient.comments.map(c => `<div class="bg-white p-4 rounded-xl shadow-sm text-sm text-slate-700">${c}</div>`).join('')}
+                    </div>
+                </div>`;
+            }
+
+            html += `
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
+                    <h3 class="text-lg font-bold text-slate-800 mb-8">Linha do Tempo da Obra</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                        ${PHASES.map((phase, index) => {
+                            const isComp = index < currentPhaseIndex, isCur = index === currentPhaseIndex, isFut = index > currentPhaseIndex;
+                            let circleHtml = isComp ? `<div class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-sm"><i data-lucide="check-circle-2" class="w-4 h-4"></i></div>` : 
+                                             isCur ? `<div class="w-6 h-6 rounded-full border-4 border-emerald-500 bg-white shadow-sm shadow-emerald-200 relative"><div class="absolute inset-0 m-auto w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div></div>` : 
+                                             `<div class="w-6 h-6 rounded-full border-2 border-slate-200 bg-slate-50"></div>`;
+                            return `
+                            <div class="flex items-start gap-4 ${isFut ? 'opacity-50' : ''}">
+                                <div class="flex flex-col items-center mt-0.5">${circleHtml}</div>
+                                <div class="flex-1 pb-4 border-b border-slate-50">
+                                    <p class="font-medium text-sm ${isCur ? 'text-emerald-700 font-bold' : isComp ? 'text-slate-800' : 'text-slate-400'}">${index + 1}. ${phase}</p>
+                                    ${isCur ? `<p class="text-xs text-emerald-600/80 mt-1 bg-emerald-50 inline-block px-2 py-1 rounded-md">Em andamento pela nossa equipe.</p>` : ''}
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>`;
+            return html;
+        }
+
+        function renderObras() {
+            let html = `
+            <div class="max-w-6xl mx-auto space-y-6 animate-fade-in">
+                <div><h1 class="text-2xl font-bold tracking-tight text-slate-900">Acompanhamento de Obras</h1><p class="text-slate-500 text-sm mt-1">Gerencie a fase atual de cada cliente e adicione comentários visíveis no portal.</p></div>
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-100"><tr><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Fase Atual da Obra</th><th class="px-6 py-4">Progresso</th><th class="px-6 py-4 text-right">Ações</th></tr></thead>
+                        <tbody class="divide-y divide-slate-50">
+                            ${state.clients.map(client => `
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium text-slate-800">${client.nome}<div class="text-xs text-slate-400 font-normal mt-0.5">${client.telefone}</div></td>
+                                    <td class="px-6 py-4"><select onchange="window.updateObraPhase('${client.id}', this.value)" class="bg-slate-50 border border-slate-200 text-sm rounded-lg px-3 py-1.5 outline-none focus:border-emerald-500">${PHASES.map((p, i) => `<option value="${i}" ${client.phaseIndex === i ? 'selected' : ''}>${i+1}. ${p}</option>`).join('')}</select></td>
+                                    <td class="px-6 py-4"><div class="w-full bg-slate-100 rounded-full h-2.5 max-w-[150px]"><div class="bg-emerald-500 h-2.5 rounded-full" style="width: ${Math.round((client.phaseIndex / (PHASES.length-1)) * 100)}%"></div></div><span class="text-xs text-slate-500 mt-1 block">${Math.round((client.phaseIndex / (PHASES.length-1)) * 100)}% concluído</span></td>
+                                    <td class="px-6 py-4 text-right"><button onclick="window.toggleActiveObra('${client.id}')" class="text-emerald-600 hover:text-emerald-700 font-medium text-sm transition-colors">+ Comentários</button></td>
+                                </tr>
+                                ${state.activeObraClient === client.id ? `
+                                <tr class="bg-emerald-50/50"><td colspan="4" class="px-6 py-4 border-b border-emerald-100"><form onsubmit="window.addObraComment(event, '${client.id}')" class="flex gap-3 max-w-2xl"><input type="text" id="obraComment_${client.id}" placeholder="Adicionar atualização para o cliente..." class="flex-1 bg-white border border-emerald-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-emerald-500" autofocus /><button type="submit" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium">Publicar</button></form></td></tr>` : ''}
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
+            return html;
+        }
+
+        function renderAppLayout() {
+            const navItems = getNavItems();
+            let viewContent = '';
+
+            if (state.currentView === 'dashboard') viewContent = renderDashboard();
+            if (state.currentView === 'kanban') viewContent = renderKanban();
+            if (state.currentView === 'finance') viewContent = renderFinance();
+            if (state.currentView === 'agenda') viewContent = renderAgenda();
+            if (state.currentView === 'new_client') viewContent = renderClientForm();
+            if (state.currentView === 'portal') viewContent = renderPortal();
+            if (state.currentView === 'obras') viewContent = renderObras();
+
+            return `
+            <aside class="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+                <div class="h-20 flex items-center px-8 border-b border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-bold text-xl shadow-sm shadow-emerald-200">V</div>
+                        <span class="text-xl font-semibold tracking-tight text-slate-900">Virtus</span>
+                    </div>
+                </div>
+                <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+                    ${navItems.map(item => `
+                        <button onclick="window.changeView('${item.id}')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${state.currentView === item.id ? 'bg-emerald-50 text-emerald-700 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}">
+                            <i data-lucide="${item.icon}" class="${state.currentView === item.id ? 'text-emerald-600' : 'text-slate-400'} w-4 h-4"></i> ${item.label}
+                        </button>
+                    `).join('')}
+                </nav>
+                <div class="p-4 border-t border-slate-100">
+                    <button onclick="window.logout()" class="w-full text-sm font-medium text-slate-500 hover:text-red-600 text-left px-4 py-2 transition-colors">Sair do Sistema</button>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-2">
+                        <p class="text-xs text-slate-500 mb-2 font-medium">Trocar Perfil (Dev):</p>
+                        <select onchange="window.changeRole(this.value)" class="w-full bg-white border border-slate-200 text-xs rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all cursor-pointer shadow-sm">
+                            ${ROLES.map(r => `<option value="${r}" ${state.currentRole === r ? 'selected' : ''}>${r}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+                <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/50 flex items-center justify-between px-8 z-10">
+                    <div class="flex items-center bg-slate-100/80 rounded-full px-4 py-2 w-96 border border-slate-200/50 focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:bg-white transition-all">
+                        <i data-lucide="search" class="text-slate-400 w-4 h-4"></i>
+                        <input type="text" placeholder="Buscar obras, clientes ou demandas..." class="bg-transparent border-none outline-none ml-2 text-sm w-full placeholder:text-slate-400" />
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <div class="relative">
+                            <button onclick="window.toggleNotifications()" class="relative p-2 text-slate-400 hover:text-slate-600 transition-colors rounded-full hover:bg-slate-50">
+                                <i data-lucide="bell" class="w-5 h-5"></i>
+                                <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                            </button>
+                            ${state.notificationsOpen ? `
+                            <div class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 p-4 py-2 z-50 animate-slide-in-top">
+                                <h4 class="font-semibold text-sm px-2 py-2 border-b border-slate-50 mb-2">Notificações</h4>
+                                <div class="space-y-1">
+                                    <div class="p-2 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer text-sm">
+                                        <p class="text-slate-800"><span class="font-semibold text-emerald-600">@sistema</span> Nova demanda atribuída.</p>
+                                        <span class="text-xs text-slate-400 mt-1 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> Agora mesmo</span>
+                                    </div>
+                                </div>
+                            </div>` : ''}
+                        </div>
+                        <div class="flex items-center gap-3 pl-6 border-l border-slate-200">
+                            <div class="text-right hidden sm:block">
+                                <p class="text-sm font-semibold text-slate-900">Usuário Ativo</p>
+                                <p class="text-xs text-emerald-600 font-medium">${state.currentRole}</p>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm overflow-hidden">
+                                <img src="https://ui-avatars.com/api/?name=${state.currentRole}&background=10b981&color=fff" alt="Avatar" />
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <div class="flex-1 overflow-auto p-8 relative">
+                    ${viewContent}
+                </div>
+            </main>`;
+        }
+
+        // --- FUNÇÃO PRINCIPAL DE INJEÇÃO DOM ---
+        function render() {
+            const root = document.getElementById('root');
+            if (!state.isAuthenticated) {
+                root.innerHTML = renderLogin();
+            } else {
+                root.innerHTML = renderAppLayout();
+            }
             
-            <label className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-emerald-400 hover:bg-emerald-50/50 transition-colors cursor-pointer group block">
-              <div className="w-12 h-12 bg-slate-100 group-hover:bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3 transition-colors">
-                <FileText className="text-slate-400 group-hover:text-emerald-600" size={20} />
-              </div>
-              <p className="text-sm font-medium text-slate-700">Documento de Identidade</p>
-              <p className="text-xs text-slate-400 mt-1 mb-3">RG ou CNH do titular (PDF/IMG)</p>
-              <input type="file" className="text-xs text-slate-500 w-full file:bg-slate-100 file:border-0 file:rounded-md file:px-2 file:py-1 cursor-pointer" />
-            </label>
+            // Recriar ícones lucide sempre que o DOM for atualizado
+            lucide.createIcons();
+        }
 
-          </div>
-        </div>
+        // Inicializar
+        render();
 
-        <div className="pt-6 border-t border-slate-100 flex justify-end">
-          <button type="submit" disabled={gerandoPDF} className={`bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-semibold shadow-md transition-all flex items-center gap-2 ${gerandoPDF ? 'opacity-70 cursor-not-allowed' : ''}`}>
-            {gerandoPDF ? <><Clock size={18} className="animate-spin" /> Processando PDF...</> : <><FileText size={18} /> Gerar Ficha em PDF</>}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-}
-
-function ObrasView({ clients, setClients }) {
-  const [newComment, setNewComment] = useState('');
-  const [activeClient, setActiveClient] = useState(null);
-
-  const updatePhase = (clientId, newPhaseIndex) => setClients(clients.map(c => c.id === clientId ? { ...c, phaseIndex: parseInt(newPhaseIndex) } : c));
-  const addComment = (e, clientId) => {
-    e.preventDefault();
-    if(!newComment) return;
-    setClients(clients.map(c => c.id === clientId ? { ...c, comments: [...(c.comments || []), newComment] } : c));
-    setNewComment(''); setActiveClient(null);
-  };
-
-  return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500">
-      <div><h1 className="text-2xl font-bold tracking-tight text-slate-900">Acompanhamento de Obras</h1><p className="text-slate-500 text-sm mt-1">Gerencie a fase atual de cada cliente e adicione comentários visíveis no portal.</p></div>
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100"><tr><th className="px-6 py-4">Cliente</th><th className="px-6 py-4">Fase Atual da Obra</th><th className="px-6 py-4">Progresso</th><th className="px-6 py-4 text-right">Ações</th></tr></thead>
-          <tbody className="divide-y divide-slate-50">
-            {clients.map(client => (
-              <React.Fragment key={client.id}>
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-slate-800">{client.nome}<div className="text-xs text-slate-400 font-normal mt-0.5">{client.telefone}</div></td>
-                  <td className="px-6 py-4"><select value={client.phaseIndex} onChange={(e) => updatePhase(client.id, e.target.value)} className="bg-slate-50 border border-slate-200 text-sm rounded-lg px-3 py-1.5 outline-none focus:border-emerald-500">{PHASES.map((phase, idx) => (<option key={idx} value={idx}>{idx + 1}. {phase}</option>))}</select></td>
-                  <td className="px-6 py-4"><div className="w-full bg-slate-100 rounded-full h-2.5 max-w-[150px]"><div className="bg-emerald-500 h-2.5 rounded-full" style={{ width: `${Math.round((client.phaseIndex / (PHASES.length-1)) * 100)}%` }}></div></div><span className="text-xs text-slate-500 mt-1 block">{Math.round((client.phaseIndex / (PHASES.length-1)) * 100)}% concluído</span></td>
-                  <td className="px-6 py-4 text-right"><button onClick={() => setActiveClient(activeClient === client.id ? null : client.id)} className="text-emerald-600 hover:text-emerald-700 font-medium text-sm transition-colors">+ Comentários</button></td>
-                </tr>
-                {activeClient === client.id && (
-                  <tr className="bg-emerald-50/50"><td colSpan="4" className="px-6 py-4 border-b border-emerald-100"><form onSubmit={(e) => addComment(e, client.id)} className="flex gap-3 max-w-2xl"><input type="text" value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Adicionar atualização para o cliente..." className="flex-1 bg-white border border-emerald-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-emerald-500" autoFocus /><button type="submit" className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium">Publicar</button></form></td></tr>
-                )}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
+    </script>
+</body>
+</html>
