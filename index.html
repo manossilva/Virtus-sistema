@@ -1014,9 +1014,7 @@ function copyResponseText(){
 `;
   txt+=`Data: ${new Date().toLocaleDateString("pt-BR")}
 `;
-  txt+="=".repeat(60)+"
-
-";
+  txt+="=".repeat(60)+"\n\n";
   (d.questions||[]).forEach((q,i)=>{
     const a=d.ansMap[q.id];if(!a)return;
     txt+=`PERGUNTA ${i+1}: ${q.text}
@@ -1025,10 +1023,7 @@ function copyResponseText(){
 
 `;
   });
-  if(d.extra?.content){txt+="=".repeat(60)+"
-INFORMAÇÕES COMPLEMENTARES:
-"+d.extra.content+"
-";}
+  if(d.extra?.content){txt+="=".repeat(60)+"\nINFORMAÇÕES COMPLEMENTARES:\n"+d.extra.content+"\n";}
   navigator.clipboard.writeText(txt).then(()=>{
     const btn=document.getElementById("btn-copy-text");
     const orig=btn.innerHTML;
